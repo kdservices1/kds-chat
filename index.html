@@ -23,7 +23,7 @@
             overflow: hidden;
         }
 
-        /* Dunkler Overlay-Schleier für Lesbarkeit & Çukur-Vibe */
+        /* Dunkler Overlay-Schleier */
         .bg-overlay {
             position: absolute;
             top: 0;
@@ -46,7 +46,7 @@
 
         header {
             background: rgba(12, 12, 16, 0.9);
-            padding: 15px 25px;
+            padding: 10px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -61,6 +61,23 @@
             letter-spacing: 2px;
             text-transform: uppercase;
             text-shadow: 0 0 10px rgba(255, 0, 21, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .header-deko-img {
+            height: 65px;
+            width: 130px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #ff0015;
+            box-shadow: 0 0 15px rgba(255, 0, 21, 0.8);
+            transition: transform 0.2s ease;
+        }
+
+        .header-deko-img:hover {
+            transform: scale(1.05);
         }
 
         .cukur-symbol {
@@ -73,6 +90,11 @@
         @keyframes pulseGlow {
             from { text-shadow: 0 0 5px #ff0015, 0 0 10px #ff0015; }
             to { text-shadow: 0 0 15px #ff0015, 0 0 25px #ff0015; }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
         }
 
         .nav-links button {
@@ -111,12 +133,6 @@
             font-size: 0.95rem;
             line-height: 1.4;
             word-wrap: break-word;
-            animation: fadeIn 0.2s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .my-message {
@@ -143,6 +159,12 @@
             border: 1px solid rgba(255, 0, 21, 0.5);
             padding: 8px 20px;
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.2);
+        }
+
+        .nickname-tag {
+            font-weight: bold;
+            margin-right: 6px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
 
         #input-container {
@@ -259,7 +281,12 @@
 
     <div class="app-container">
         <header>
-            <div class="logo"><span class="cukur-symbol">&lt;• • •&gt;</span> KDS CHAT</div>
+            <div class="logo">
+                <span class="cukur-symbol">&lt;• • •&gt;</span> 
+                KDS CHAT
+                <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6098.png" class="header-deko-img" alt="Deko 1">
+                <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6093.jpg" class="header-deko-img" alt="Deko 2">
+            </div>
             <div class="nav-links">
                 <button onclick="openModal('rules-modal')">Rules</button>
                 <button onclick="openModal('about-modal')">About</button>
@@ -272,6 +299,16 @@
             <button class="action-btn" id="skip-btn" onclick="skipStranger()">Skip</button>
             <input type="text" id="msg-input" placeholder="Write a message..." onkeypress="handleKey(event)">
             <button class="action-btn" id="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- Modal: Nickname Setup -->
+    <div id="nickname-modal" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <h2>Enter Your Nickname</h2>
+            <p style="margin-bottom: 12px; color: #aaaaaa;">Choose a name before entering the chat:</p>
+            <input type="text" id="nickname-input" placeholder="e.g. BOGA" maxlength="15" style="width: 100%;" onkeypress="handleNickKey(event)">
+            <button onclick="saveNickname()">Join Chat</button>
         </div>
     </div>
 
@@ -299,12 +336,30 @@
         const chatBox = document.getElementById('chat-box');
         const msgInput = document.getElementById('msg-input');
         
-        // Verknüpft mit deiner Live-Server-Instanz auf Render
         const SERVER_URL = 'wss://kds-chat-server.onrender.com';
         let socket;
+        let myNickname = 'Anonymous';
+        let myColor = getRandomColor();
 
-        // Sicherheitsfilter im Client
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
+
+        function getRandomColor() {
+            const colors = ['#00ffcc', '#ff007f', '#ffcc00', '#00ff66', '#ff6600', '#9933ff', '#00bfff', '#ff3300', '#33ff33'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function saveNickname() {
+            const nickVal = document.getElementById('nickname-input').value.trim();
+            if (nickVal) {
+                myNickname = nickVal;
+            }
+            closeModal('nickname-modal');
+            connectServer();
+        }
+
+        function handleNickKey(e) {
+            if (e.key === 'Enter') saveNickname();
+        }
 
         function connectServer() {
             socket = new WebSocket(SERVER_URL);
@@ -318,7 +373,9 @@
                 if (data.type === 'system') {
                     appendMessage(data.message, 'system-message');
                 } else if (data.type === 'message') {
-                    appendMessage(data.text, 'stranger-message');
+                    const senderNick = data.nick || 'Stranger';
+                    const senderColor = data.color || '#ff0015';
+                    appendMessage(data.text, 'stranger-message', senderNick, senderColor);
                 }
             };
 
@@ -332,7 +389,6 @@
             const text = msgInput.value.trim();
             if (!text) return;
 
-            // Kicked sofort bei Regelverstoß
             if (forbiddenPattern.test(text)) {
                 alert('Violation detected. You have been disconnected.');
                 socket.close();
@@ -340,15 +396,20 @@
                 return;
             }
 
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ type: 'message', text: text }));
-                appendMessage(text, 'my-message');
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ 
+                    type: 'message', 
+                    text: text,
+                    nick: myNickname,
+                    color: myColor
+                }));
+                appendMessage(text, 'my-message', myNickname, myColor);
                 msgInput.value = '';
             }
         }
 
         function skipStranger() {
-            if (socket.readyState === WebSocket.OPEN) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'skip' }));
                 chatBox.innerHTML = '';
             }
@@ -356,18 +417,30 @@
 
         function handleKey(e) { if (e.key === 'Enter') sendMessage(); }
 
-        function appendMessage(text, className) {
+        function appendMessage(text, className, nick = null, color = null) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', className);
-            msgDiv.innerText = text;
+
+            if (nick && color) {
+                const nickSpan = document.createElement('span');
+                nickSpan.classList.add('nickname-tag');
+                nickSpan.style.color = color;
+                nickSpan.innerText = nick + ': ';
+                msgDiv.appendChild(nickSpan);
+
+                const textSpan = document.createElement('span');
+                textSpan.innerText = text;
+                msgDiv.appendChild(textSpan);
+            } else {
+                msgDiv.innerText = text;
+            }
+
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        connectServer();
     </script>
 </body>
 </html>
