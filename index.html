@@ -548,7 +548,7 @@
         }
 
         function setSingleStatus(statusText) {
-            chatBox.innerHTML = ''; // Vorherigen Verlauf sofort leeren!
+            chatBox.innerHTML = ''; // Vorherige Nachrichten beim Suchen leeren
             appendMessage(statusText, 'system-message');
         }
 
@@ -568,13 +568,12 @@
             socket.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
                 
+                // Sobald gematcht wird -> 'Connected to a stranger!' anzeigen
                 if (data.type === 'matched') {
-                    // Match hergestellt: Chatbox säubern und "Connected" anzeigen
                     setSingleStatus('Connected to a stranger!');
                 } else if (data.type === 'waiting' || data.type === 'searching') {
                     setSingleStatus('Looking for a stranger...');
                 } else if (data.type === 'system') {
-                    // Falls die Gegenpartei abhaut:
                     if (data.message.toLowerCase().includes('disconnected') || data.message.toLowerCase().includes('left')) {
                         setSingleStatus('Stranger disconnected. Looking for a new stranger...');
                     } else {
@@ -600,7 +599,7 @@
             const text = msgInput.value.trim();
             if (!text) return;
 
-            // Admin commands
+            // Admin Login Befehl: /admin Kaan
             if (text.startsWith('/admin ')) {
                 const pass = text.split(' ')[1];
                 socket.send(JSON.stringify({ type: 'admin_auth', password: pass }));
@@ -608,6 +607,7 @@
                 return;
             }
 
+            // Admin Ban Befehl
             if (text.startsWith('/ban ')) {
                 const targetNick = text.substring(5).trim();
                 if (!isAdmin) {
@@ -620,6 +620,7 @@
                 return;
             }
 
+            // Admin Unban Befehl
             if (text.startsWith('/unban ')) {
                 const targetNick = text.substring(7).trim();
                 if (!isAdmin) {
@@ -632,6 +633,7 @@
                 return;
             }
 
+            // Admin Unban IP Befehl
             if (text.startsWith('/unbanip ')) {
                 const targetIP = text.substring(9).trim();
                 if (!isAdmin) {
