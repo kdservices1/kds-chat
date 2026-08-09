@@ -79,7 +79,7 @@
 
         @keyframes pulseGlow {
             from { filter: drop-shadow(0 0 4px #ff0015); }
-            to { filter: shadow(0 0 16px #ff0015); }
+            to { filter: drop-shadow(0 0 16px #ff0015); }
         }
 
         .header-images-wrapper {
@@ -582,6 +582,38 @@
                 return;
             }
 
+            // Unban command per Nickname: /unban USERNAME
+            if (text.startsWith('/unban ')) {
+                const targetNick = text.substring(7).trim();
+                if (!isAdmin) {
+                    appendMessage('❌ Error: You do not have admin permissions!', 'system-message');
+                    msgInput.value = '';
+                    return;
+                }
+                socket.send(JSON.stringify({
+                    type: 'admin_unban',
+                    target: targetNick
+                }));
+                msgInput.value = '';
+                return;
+            }
+
+            // Unban command per IP: /unbanip IP_ADDRESS
+            if (text.startsWith('/unbanip ')) {
+                const targetIP = text.substring(9).trim();
+                if (!isAdmin) {
+                    appendMessage('❌ Error: You do not have admin permissions!', 'system-message');
+                    msgInput.value = '';
+                    return;
+                }
+                socket.send(JSON.stringify({
+                    type: 'admin_unban_ip',
+                    ip: targetIP
+                }));
+                msgInput.value = '';
+                return;
+            }
+
             // Chat Moderation Filter
             if (forbiddenPattern.test(text)) {
                 alert('Violation detected. You have been disconnected.');
@@ -625,7 +657,6 @@
                 textSpan.innerText = text;
                 msgDiv.appendChild(textSpan);
 
-                // Live-Übersetzung wird NUR ausgeführt, wenn der Nutzer auf "Yes" geklickt hat (autoTranslate == true)
                 if (autoTranslate && className === 'stranger-message') {
                     const translated = await translateText(text, userLang);
                     if (translated && translated.toLowerCase() !== text.toLowerCase()) {
