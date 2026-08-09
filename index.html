@@ -82,7 +82,6 @@
             to { filter: drop-shadow(0 0 16px #ff0015); }
         }
 
-        /* GROSSE HORIZONTALE BILDER IM HEADER */
         .header-images-wrapper {
             display: flex;
             flex-direction: row;
@@ -315,7 +314,6 @@
             text-shadow: 0 0 8px rgba(255, 0, 21, 0.6);
         }
 
-        /* FARBWÄHLER STYLING */
         .color-picker-container {
             margin-top: 15px;
             display: flex;
@@ -380,7 +378,6 @@
                     KDS CHAT
                 </div>
 
-                <!-- GROSSE HORIZONTALE DEKO-BILDER -->
                 <div class="header-images-wrapper">
                     <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6098.png" class="header-deko-img" alt="Deko 1">
                     <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6093.jpg" class="header-deko-img" alt="Deko 2">
@@ -420,7 +417,6 @@
             
             <input type="text" id="nickname-input" placeholder="e.g. BOGA" maxlength="15" style="width: 100%;" onkeypress="handleNickKey(event)">
             
-            <!-- FARBWÄHLER EINGEBAUT -->
             <div class="color-picker-container">
                 <input type="color" id="color-input" value="#00bfff">
                 <label for="color-input" style="font-size: 0.9rem; color: #ffffff;">Choose Nickname Color</label>
@@ -473,7 +469,6 @@
 
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
 
-        // Setzt beim Start eine Zufallsfarbe als Standardwert im Picker
         document.getElementById('color-input').value = getRandomColor();
 
         function initTranslationCheck() {
