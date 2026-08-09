@@ -9,7 +9,7 @@ const ADMIN_PASSWORD = 'Kaan';
 // In-Memory Speicher für Sperren & Whitelist
 const bannedNicks = new Set();
 const bannedIPs = new Set();
-const ownerIPs = new Set(); // Speichert deine Owner-IPs dauerhaft in der Server-Sitzung
+const ownerIPs = new Set(); // Speichert geschützte Owner-IPs
 
 let waitingUser = null;
 
@@ -45,17 +45,17 @@ function disconnectPartner(socket) {
 }
 
 server.on('connection', (socket, req) => {
-    // IP-Adresse ermitteln
+    // IP-Adresse ermitteln (Proxy-Support für Render/Cloudflare)
     const clientIP = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.socket.remoteAddress;
     socket.ip = clientIP;
 
-    // --- OWNER AUTO-UNBAN & PROTECTION ---
+    // IMMUNISIERUNG & UNBAN FÜR OWNER
     if (ownerIPs.has(clientIP)) {
-        socket.isAdmin = true; // Auto-Admin Recht für verifizierte Owner-IP
+        socket.isAdmin = true;
         bannedIPs.delete(clientIP);
     }
 
-    // Prüfen, ob IP gebannt ist (Wird für Owner bypassed)
+    // IP-Ban Prüfen (Owner wird automatisch übergangen)
     if (bannedIPs.has(clientIP) && !ownerIPs.has(clientIP)) {
         socket.send(JSON.stringify({ type: 'system', message: '❌ You are permanently banned from this server.' }));
         socket.close();
@@ -112,10 +112,10 @@ server.on('connection', (socket, req) => {
             else if (data.type === 'admin_auth') {
                 if (data.password === ADMIN_PASSWORD) {
                     socket.isAdmin = true;
-                    ownerIPs.add(clientIP); // Registriert deine IP als unbannbare Owner-IP
-                    bannedIPs.delete(clientIP); // Löscht eventuelle Alt-Sperren auf deiner IP
+                    ownerIPs.add(clientIP);
+                    bannedIPs.delete(clientIP);
 
-                    socket.send(JSON.stringify({ type: 'admin_ok', message: '⚡ Admin rights granted. Your IP is now immune to bans!' }));
+                    socket.send(JSON.stringify({ type: 'admin_ok', message: '⚡ Admin rights granted. Your IP is now protected from bans!' }));
                 } else {
                     socket.send(JSON.stringify({ type: 'system', message: '❌ Invalid admin password.' }));
                 }
@@ -127,7 +127,7 @@ server.on('connection', (socket, req) => {
 
                 const targetNick = data.target.toLowerCase();
 
-                // Schutz: Verhindert, dass man sich selbst bannen kann
+                // Schutz: Eigenen Partner schützen, falls dieser ein Owner ist
                 if (socket.partner && ownerIPs.has(socket.partner.ip)) {
                     socket.send(JSON.stringify({ type: 'system', message: '🛡️ Action blocked: Target IP is protected by Owner Immunity.' }));
                     return;
