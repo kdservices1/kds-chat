@@ -14,12 +14,10 @@ server.on('connection', (socket) => {
         try {
             const data = JSON.parse(message);
 
-            // User teilt seinen Namen und seine Farbe beim Start mit
             if (data.type === 'join') {
                 socket.nick = data.nick || 'Stranger';
                 socket.color = data.color || '#ff0015';
 
-                // Pairing erst starten, wenn Name bekannt ist
                 if (waitingUser && waitingUser !== socket && waitingUser.readyState === WebSocket.OPEN) {
                     socket.partner = waitingUser;
                     waitingUser.partner = socket;
@@ -33,8 +31,6 @@ server.on('connection', (socket) => {
                     socket.send(JSON.stringify({ type: 'system', message: 'Looking for a stranger...' }));
                 }
             }
-
-            // Normales Senden von Nachrichten
             else if (data.type === 'message' && socket.partner && socket.partner.readyState === WebSocket.OPEN) {
                 socket.partner.send(JSON.stringify({
                     type: 'message',
@@ -43,8 +39,6 @@ server.on('connection', (socket) => {
                     color: socket.color
                 }));
             } 
-
-            // Skip-Funktion
             else if (data.type === 'skip') {
                 if (socket.partner && socket.partner.readyState === WebSocket.OPEN) {
                     socket.partner.send(JSON.stringify({ type: 'system', message: 'Stranger has disconnected.' }));
