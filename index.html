@@ -13,13 +13,28 @@
         }
 
         body {
-            background: url('https://media.giphy.com/media/ifLnmjGWXRZrFbgC3O/giphy.gif') no-repeat center center fixed;
+            /* Neuer Galaxy Red Stil (Çukur Theme) statt GIF */
+            background: radial-gradient(circle at center, #1a0204 0%, #080001 60%, #020000 100%);
             background-size: cover;
             color: #ffffff;
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Subtiler Sternen / Galaxy Effekt als Overlay */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(#ff0015 1px, transparent 1px), radial-gradient(#ffffff 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+            opacity: 0.05;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .bg-overlay {
@@ -28,14 +43,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(5, 5, 8, 0.82);
+            background: rgba(5, 5, 8, 0.75);
             backdrop-filter: blur(4px);
-            z-index: 1;
+            z-index: 2;
         }
 
         .app-container {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -44,22 +59,25 @@
 
         header {
             background: rgba(12, 12, 16, 0.95);
-            padding: 12px 25px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #ff0015;
             box-shadow: 0 0 15px rgba(255, 0, 21, 0.4);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .logo {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-weight: 900;
             color: #ffffff;
             letter-spacing: 2px;
@@ -67,12 +85,12 @@
             text-shadow: 0 0 10px rgba(255, 0, 21, 0.8);
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .cukur-hq-logo {
-            width: 45px;
-            height: 50px;
+            width: 35px;
+            height: 40px;
             filter: drop-shadow(0 0 10px #ff0015);
             animation: pulseGlow 2.5s infinite alternate;
         }
@@ -86,42 +104,42 @@
             display: flex;
             flex-direction: row;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .header-deko-img {
-            height: 120px;
+            height: 50px;
             width: auto;
-            max-width: 220px;
+            max-width: 100px;
             object-fit: contain;
             background: rgba(0, 0, 0, 0.6);
-            border-radius: 8px;
-            border: 2px solid #ff0015;
-            box-shadow: 0 0 20px rgba(255, 0, 21, 0.8);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 6px;
+            border: 1px solid #ff0015;
+            box-shadow: 0 0 10px rgba(255, 0, 21, 0.6);
+            transition: transform 0.2s ease;
         }
 
         .header-deko-img:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 30px rgba(255, 0, 21, 1);
+            transform: scale(1.05);
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         .nav-links a, .nav-links button {
             background: rgba(0, 0, 0, 0.6);
             border: 1px solid #ff0015;
             color: #ffffff;
-            padding: 10px 16px;
+            padding: 8px 12px;
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             transition: all 0.3s ease;
             box-shadow: 0 0 8px rgba(255, 0, 21, 0.2);
             display: inline-block;
@@ -138,20 +156,23 @@
             display: none;
             background: rgba(20, 10, 15, 0.95);
             border-bottom: 2px solid #ff0015;
-            padding: 12px 25px;
+            padding: 10px 20px;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 15px rgba(255, 0, 21, 0.3);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            flex-wrap: gap;
+            gap: 10px;
         }
 
         .banner-buttons button {
-            padding: 6px 14px;
-            margin-left: 8px;
+            padding: 6px 12px;
+            margin-left: 6px;
             font-weight: bold;
             border: none;
             cursor: pointer;
             text-transform: uppercase;
+            font-size: 0.75rem;
         }
 
         .btn-yes {
@@ -167,18 +188,18 @@
 
         #chat-box {
             flex: 1;
-            padding: 25px;
+            padding: 15px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .message {
-            max-width: 65%;
-            padding: 14px 18px;
+            max-width: 80%;
+            padding: 12px 15px;
             border-radius: 4px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.4;
             word-wrap: break-word;
         }
@@ -201,17 +222,18 @@
 
         .system-message {
             align-self: center;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             color: #ff4d5a;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             border: 1px solid rgba(255, 0, 21, 0.5);
-            padding: 8px 20px;
+            padding: 6px 15px;
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.2);
+            text-align: center;
         }
 
         .translated-text {
             display: block;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             color: #ff8892;
             margin-top: 4px;
             font-style: italic;
@@ -222,14 +244,14 @@
         .nickname-tag {
             font-weight: 900;
             margin-right: 6px;
-            text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000, 1px -1px 2px #000000, -1px 1px 2px #000000;
+            text-shadow: 1px 1px 2px #000000;
         }
 
         #input-container {
             background: rgba(12, 12, 16, 0.95);
-            padding: 18px;
+            padding: 12px;
             display: flex;
-            gap: 12px;
+            gap: 8px;
             border-top: 1px solid rgba(255, 0, 21, 0.4);
             box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
         }
@@ -239,10 +261,11 @@
             background: rgba(5, 5, 8, 0.8);
             border: 1px solid #333344;
             color: #ffffff;
-            padding: 14px;
+            padding: 12px;
             outline: none;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
+            border-radius: 0;
         }
 
         input[type="text"]:focus {
@@ -251,13 +274,14 @@
         }
 
         .action-btn {
-            padding: 14px 26px;
+            padding: 12px 18px;
             border: none;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.2s ease;
+            font-size: 0.85rem;
         }
 
         #send-btn {
@@ -269,7 +293,6 @@
         #send-btn:hover {
             background: #e00013;
             box-shadow: 0 0 20px rgba(255, 0, 21, 0.9);
-            transform: scale(1.02);
         }
 
         #skip-btn {
@@ -294,41 +317,43 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
+            padding: 15px;
         }
 
         .modal-content {
             background: #0d0d12;
             border: 2px solid #ff0015;
             box-shadow: 0 0 25px rgba(255, 0, 21, 0.6);
-            padding: 30px;
+            padding: 20px;
             max-width: 480px;
-            width: 90%;
+            width: 100%;
             color: #dddddd;
         }
 
         .modal-content h2 {
             color: #ffffff;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border-bottom: 1px solid #ff0015;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             text-shadow: 0 0 8px rgba(255, 0, 21, 0.6);
+            font-size: 1.2rem;
         }
 
         .color-picker-container {
-            margin-top: 15px;
+            margin-top: 12px;
             display: flex;
             align-items: center;
             gap: 12px;
             background: rgba(5, 5, 8, 0.8);
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #333344;
         }
 
         .color-picker-container input[type="color"] {
             -webkit-appearance: none;
             border: 1px solid #ff0015;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             cursor: pointer;
             background: none;
         }
@@ -343,20 +368,27 @@
 
         .modal-content button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: #ff0015;
             color: #ffffff;
             border: none;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 18px;
+            margin-top: 15px;
             text-transform: uppercase;
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.5);
-            transition: all 0.2s ease;
         }
 
-        .modal-content button:hover {
-            box-shadow: 0 0 20px rgba(255, 0, 21, 0.9);
+        /* Media Queries für große Bildschirme (PC) */
+        @media(min-width: 768px) {
+            header { padding: 12px 25px; }
+            .logo { font-size: 1.6rem; }
+            .header-deko-img { height: 100px; max-width: 180px; }
+            .nav-links a, .nav-links button { padding: 10px 16px; font-size: 0.85rem; }
+            .message { max-width: 65%; padding: 14px 18px; font-size: 0.95rem; }
+            #input-container { padding: 18px; }
+            .action-btn { padding: 14px 26px; font-size: 1rem; }
+            .modal-content { padding: 30px; }
         }
     </style>
 </head>
@@ -413,13 +445,13 @@
     <div id="nickname-modal" class="modal" style="display: flex;">
         <div class="modal-content">
             <h2>Enter Your Nickname</h2>
-            <p style="margin-bottom: 12px; color: #aaaaaa;">Choose a name and your custom color:</p>
+            <p style="margin-bottom: 12px; color: #aaaaaa; font-size: 0.9rem;">Choose a name and your custom color:</p>
             
             <input type="text" id="nickname-input" placeholder="e.g. BOGA" maxlength="15" style="width: 100%;" onkeypress="handleNickKey(event)">
             
             <div class="color-picker-container">
                 <input type="color" id="color-input" value="#00bfff">
-                <label for="color-input" style="font-size: 0.9rem; color: #ffffff;">Choose Nickname Color</label>
+                <label for="color-input" style="font-size: 0.85rem; color: #ffffff;">Choose Nickname Color</label>
             </div>
 
             <button onclick="saveNickname()">Join Chat</button>
@@ -430,9 +462,9 @@
     <div id="rules-modal" class="modal">
         <div class="modal-content">
             <h2>Rules & Safety</h2>
-            <p style="color: #ff0015; font-weight: bold; margin-bottom: 10px;">Age Limit: 16+</p>
-            <p><strong>Zero Tolerance Policy:</strong> Strictly no CP / Child Sexual Abuse Material or related discussion.</p>
-            <p style="font-size: 0.85rem; margin-top: 10px; color: #aaaaaa;">Any attempt to discuss or share illegal content will result in an immediate automatic kick.</p>
+            <p style="color: #ff0015; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem;">Age Limit: 16+</p>
+            <p style="font-size: 0.9rem;"><strong>Zero Tolerance Policy:</strong> Strictly no CP / Child Sexual Abuse Material or related discussion.</p>
+            <p style="font-size: 0.8rem; margin-top: 10px; color: #aaaaaa;">Any attempt to discuss or share illegal content will result in an immediate automatic kick.</p>
             <button onclick="closeModal('rules-modal')">I Understand</button>
         </div>
     </div>
@@ -441,7 +473,7 @@
     <div id="about-modal" class="modal">
         <div class="modal-content">
             <h2>About</h2>
-            <p>Hey, I'm <strong>KD</strong>. I'm a 16-year-old developer who created this random chat project for fun and out of boredom. Connect and chat with people worldwide anonymously!</p>
+            <p style="font-size: 0.9rem; line-height: 1.4;">Hey, I'm <strong>KD</strong>. I'm a 16-year-old developer who created this random chat project for fun and out of boredom. Connect and chat with people worldwide anonymously!</p>
             <button onclick="closeModal('about-modal')">Close</button>
         </div>
     </div>
@@ -567,7 +599,6 @@
             const text = msgInput.value.trim();
             if (!text) return;
 
-            // Admin Login Befehl: /admin Kaan
             if (text.startsWith('/admin ')) {
                 const pass = text.split(' ')[1];
                 socket.send(JSON.stringify({ type: 'admin_auth', password: pass }));
@@ -575,7 +606,6 @@
                 return;
             }
 
-            // Admin Ban Befehl
             if (text.startsWith('/ban ')) {
                 const targetNick = text.substring(5).trim();
                 if (!isAdmin) {
@@ -588,7 +618,6 @@
                 return;
             }
 
-            // Admin Unban Befehl
             if (text.startsWith('/unban ')) {
                 const targetNick = text.substring(7).trim();
                 if (!isAdmin) {
@@ -601,7 +630,6 @@
                 return;
             }
 
-            // Admin Unban IP Befehl
             if (text.startsWith('/unbanip ')) {
                 const targetIP = text.substring(9).trim();
                 if (!isAdmin) {
