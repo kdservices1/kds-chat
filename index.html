@@ -289,6 +289,16 @@
             text-shadow: 1px 1px 2px #000000;
         }
 
+        .chat-image {
+            max-width: 220px;
+            max-height: 220px;
+            border-radius: 4px;
+            margin-top: 5px;
+            border: 1px solid #ff0015;
+            display: block;
+            cursor: pointer;
+        }
+
         #input-container {
             background: rgba(12, 12, 16, 0.95);
             padding: 12px;
@@ -296,6 +306,7 @@
             gap: 8px;
             border-top: 1px solid rgba(255, 0, 21, 0.4);
             box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
         }
 
         input[type="text"] {
@@ -348,6 +359,55 @@
             border-color: #ff0015;
         }
 
+        .tool-icon-btn {
+            background: rgba(20, 20, 30, 0.9);
+            color: #ff0015;
+            border: 1px solid #ff0015;
+            padding: 0 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-icon-btn:hover {
+            background: #ff0015;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,0,21,0.8);
+        }
+
+        /* Sticker/Emoji Picker Popup Box */
+        #sticker-picker {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            left: 12px;
+            background: rgba(12, 12, 18, 0.98);
+            border: 2px solid #ff0015;
+            width: 320px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(255,0,21,0.5);
+            z-index: 50;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+        }
+
+        .sticker-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333344;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: transform 0.1s, background 0.1s;
+        }
+        .sticker-item:hover {
+            background: #ff0015;
+            transform: scale(1.15);
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -381,7 +441,7 @@
             font-size: 1.2rem;
         }
 
-        .color-picker-container {
+        .setup-group {
             margin-top: 12px;
             display: flex;
             align-items: center;
@@ -391,7 +451,7 @@
             border: 1px solid #333344;
         }
 
-        .color-picker-container input[type="color"] {
+        .setup-group input[type="color"] {
             -webkit-appearance: none;
             border: 1px solid #ff0015;
             width: 35px;
@@ -400,12 +460,17 @@
             background: none;
         }
 
-        .color-picker-container input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
+        .setup-group input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .setup-group input[type="color"]::-webkit-color-swatch { border: none; }
 
-        .color-picker-container input[type="color"]::-webkit-color-swatch {
-            border: none;
+        .setup-group select {
+            flex: 1;
+            background: #050508;
+            color: #fff;
+            border: 1px solid #ff0015;
+            padding: 8px;
+            outline: none;
+            cursor: pointer;
         }
 
         .modal-content button {
@@ -461,7 +526,6 @@
             </div>
 
             <div class="nav-links">
-                <!-- Nur noch Online Status mit grünem Punkt -->
                 <div id="online-counter"><span class="online-dot"></span> Online</div>
                 <a href="https://kdservices1.github.io/CUKUR-KD/" target="_blank">Website</a>
                 <a href="https://discord.gg/zrMp8zwhCW" target="_blank">Discord</a>
@@ -473,7 +537,6 @@
         <div id="translation-banner">
             <span id="banner-text">Language detected. Enable live translation or choose manually?</span>
             <div class="banner-buttons">
-                <!-- Über 100 Sprachen zur manuellen Auswahl -->
                 <select id="manual-lang-select">
                     <option value="" disabled selected>-- Choose Language (>100) --</option>
                     <option value="af">Afrikaans</option>
@@ -619,22 +682,60 @@
 
         <div id="input-container">
             <button class="action-btn" id="skip-btn" onclick="skipStranger()">Skip</button>
+            <button class="tool-icon-btn" id="sticker-toggle-btn" onclick="toggleStickerPicker()" title="Send Emoji/Sticker">😊</button>
+            <button class="tool-icon-btn" onclick="document.getElementById('image-file-input').click()" title="Send Image / Camera">📷</button>
+            <input type="file" id="image-file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(event)">
+            
             <input type="text" id="msg-input" placeholder="Write a message..." onkeypress="handleKey(event)">
             <button class="action-btn" id="send-btn" onclick="sendMessage()">Send</button>
+
+            <!-- Emoji/Sticker Auswahl Box -->
+            <div id="sticker-picker"></div>
         </div>
     </div>
 
-    <!-- Modal: Nickname & Farbwähler Setup -->
+    <!-- Modal: Nickname, Farbwähler, Geschlecht & Flagge Setup -->
     <div id="nickname-modal" class="modal" style="display: flex;">
         <div class="modal-content">
-            <h2>Enter Your Nickname</h2>
-            <p style="margin-bottom: 12px; color: #aaaaaa; font-size: 0.9rem;">Choose a name and your custom color:</p>
+            <h2>Enter Your Profile</h2>
+            <p style="margin-bottom: 12px; color: #aaaaaa; font-size: 0.9rem;">Choose name, color, gender & country flag:</p>
             
             <input type="text" id="nickname-input" placeholder="e.g. BOGA" maxlength="15" style="width: 100%;" onkeypress="handleNickKey(event)">
             
-            <div class="color-picker-container">
+            <div class="setup-group">
                 <input type="color" id="color-input" value="#00bfff">
-                <label for="color-input" style="font-size: 0.85rem; color: #ffffff;">Choose Nickname Color</label>
+                <label for="color-input" style="font-size: 0.85rem; color: #ffffff;">Nickname Color</label>
+            </div>
+
+            <div class="setup-group">
+                <label for="gender-input" style="font-size: 0.85rem; color: #ffffff; min-width: 60px;">Gender:</label>
+                <select id="gender-input">
+                    <option value="Neutral">Neutral ⚧️</option>
+                    <option value="Male">Male ♂️</option>
+                    <option value="Female">Female ♀️</option>
+                </select>
+            </div>
+
+            <div class="setup-group">
+                <label for="flag-input" style="font-size: 0.85rem; color: #ffffff; min-width: 60px;">Flag:</label>
+                <select id="flag-input">
+                    <option value="🇩🇪">🇩🇪 Germany</option>
+                    <option value="🇹🇷">🇹🇷 Turkey</option>
+                    <option value="🇺🇸">🇺🇸 United States</option>
+                    <option value="🇬🇧">🇬🇧 United Kingdom</option>
+                    <option value="🇫🇷">🇫🇷 France</option>
+                    <option value="🇪🇸">🇪🇸 Spain</option>
+                    <option value="🇮🇹">🇮🇹 Italy</option>
+                    <option value="🇳🇱">🇳🇱 Netherlands</option>
+                    <option value="🇵🇱">🇵🇱 Poland</option>
+                    <option value="🇷🇺">🇷🇺 Russia</option>
+                    <option value="🇧🇷">🇧🇷 Brazil</option>
+                    <option value="🇯🇵">🇯🇵 Japan</option>
+                    <option value="🇰🇷">🇰🇷 South Korea</option>
+                    <option value="🇨🇦">🇨🇦 Canada</option>
+                    <option value="🇦🇺">🇦🇺 Australia</option>
+                    <option value="🏳️">🏳️ Global / Other</option>
+                </select>
             </div>
 
             <button onclick="saveNickname()">Join Chat</button>
@@ -719,6 +820,47 @@
         animateSpace();
 
 
+        /* --- Emojis / Sticker initialisieren --- */
+        const emojiList = [
+            "😀","😃","😄","😁","😆","😅","🤣","😂","🙂","🙃","😉","😊","😇","🥰","😍","🤩",
+            "😘","😗","😚","😙","😋","😛","😜","🤪","😝","🤑","🤗","🤭","🤫","🤔","🤐","🤨",
+            "😐","😑","😶","😏","😒","🙄","😬","🤥","😌","😔","😪","🤤","😴","😷","🤒","🤕",
+            "🤢","🤮","🤧","🥵","🥶","🥴","😵","🤯","🤠","🥳","😎","🤓","🧐","😕","😟","🙁",
+            "😮","😯","😲","😳","🥺","😦","😧","😨","😰","😥","😢","😭","😱","😖","😣","😞",
+            "😓","😩","😫","🥱","😤","😡","😠","🤬","😈","👿","💀","☠️","💩","🤡","👹","👺",
+            "👻","👽","👾","🤖","😺","😸","😹","😻","😼","😽","🙀","😿","😾","❤️","🧡","💛",
+            "💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","🔥",
+            "⭐","🌟","✨","⚡","💥","💯","💢","💬","👁️‍🗨️","🚀","🛸","🎮","👑","💎"
+        ];
+
+        const stickerPicker = document.getElementById('sticker-picker');
+        emojiList.forEach(emoji => {
+            const item = document.createElement('div');
+            item.className = 'sticker-item';
+            item.innerText = emoji;
+            item.onclick = () => {
+                msgInput.value += emoji;
+                toggleStickerPicker();
+                msgInput.focus();
+            };
+            stickerPicker.appendChild(item);
+        });
+
+        function toggleStickerPicker() {
+            if (stickerPicker.style.display === 'grid') {
+                stickerPicker.style.display = 'none';
+            } else {
+                stickerPicker.style.display = 'grid';
+            }
+        }
+
+        window.addEventListener('click', (e) => {
+            if (!stickerPicker.contains(e.target) && e.target.id !== 'sticker-toggle-btn') {
+                stickerPicker.style.display = 'none';
+            }
+        });
+
+
         /* --- Chat Logik & WebSocket --- */
         const chatBox = document.getElementById('chat-box');
         const msgInput = document.getElementById('msg-input');
@@ -727,6 +869,8 @@
         let socket;
         let myNickname = 'Anonymous';
         let myColor = '#00bfff';
+        let myGender = 'Neutral';
+        let myFlag = '🇩🇪';
         let isAdmin = false;
 
         let autoTranslate = false;
@@ -743,6 +887,13 @@
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
 
         document.getElementById('color-input').value = getRandomColor();
+
+        // Browser-Sprache in Flagge vorauswählen falls passend
+        if(userLang === 'de') document.getElementById('flag-input').value = '🇩🇪';
+        else if(userLang === 'tr') document.getElementById('flag-input').value = '🇹🇷';
+        else if(userLang === 'en') document.getElementById('flag-input').value = '🇺🇸';
+        else if(userLang === 'fr') document.getElementById('flag-input').value = '🇫🇷';
+        else if(userLang === 'es') document.getElementById('flag-input').value = '🇪🇸';
 
         function initTranslationCheck() {
             const text = prompts[userLang] || `Detected your language (${userLang.toUpperCase()}). Choose translation:`;
@@ -786,13 +937,13 @@
         function saveNickname() {
             const nickVal = document.getElementById('nickname-input').value.trim();
             const colorVal = document.getElementById('color-input').value;
+            const genderVal = document.getElementById('gender-input').value;
+            const flagVal = document.getElementById('flag-input').value;
             
-            if (nickVal) {
-                myNickname = nickVal;
-            }
-            if (colorVal) {
-                myColor = colorVal;
-            }
+            if (nickVal) myNickname = nickVal;
+            if (colorVal) myColor = colorVal;
+            if (genderVal) myGender = genderVal;
+            if (flagVal) myFlag = flagVal;
 
             closeModal('nickname-modal');
             initTranslationCheck();
@@ -812,7 +963,7 @@
             socket.onopen = () => {
                 socket.send(JSON.stringify({
                     type: 'join',
-                    nick: myNickname,
+                    nick: `${myFlag} ${myNickname} [${myGender}]`,
                     color: myColor
                 }));
             };
@@ -834,7 +985,13 @@
                 } else if (data.type === 'message') {
                     const senderNick = data.nick || 'Stranger';
                     const senderColor = data.color || '#ff0015';
-                    appendMessage(data.text, 'stranger-message', senderNick, senderColor);
+                    
+                    // Bild oder Text prüfen
+                    if (data.text.startsWith('data:image/')) {
+                        appendImageMessage(data.text, 'stranger-message', senderNick, senderColor);
+                    } else {
+                        appendMessage(data.text, 'stranger-message', senderNick, senderColor);
+                    }
                 }
             };
 
@@ -842,6 +999,26 @@
                 appendMessage('Disconnected from server. Reconnecting in 3s...', 'system-message');
                 setTimeout(connectServer, 3000);
             };
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                const base64Image = uploadEvent.target.result;
+                
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'message',
+                        text: base64Image
+                    }));
+                    appendImageMessage(base64Image, 'my-message', `${myFlag} ${myNickname} [${myGender}]`, myColor);
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // Reset file input
         }
 
         function sendMessage() {
@@ -903,7 +1080,7 @@
                     type: 'message', 
                     text: text
                 }));
-                appendMessage(text, 'my-message', myNickname, myColor);
+                appendMessage(text, 'my-message', `${myFlag} ${myNickname} [${myGender}]`, myColor);
                 msgInput.value = '';
             }
         }
@@ -945,6 +1122,26 @@
             } else {
                 msgDiv.innerText = text;
             }
+
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendImageMessage(imgSrc, className, nick, color) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', className);
+
+            const nickSpan = document.createElement('span');
+            nickSpan.classList.add('nickname-tag');
+            nickSpan.style.color = color;
+            nickSpan.innerText = nick + ': ';
+            msgDiv.appendChild(nickSpan);
+
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.className = 'chat-image';
+            img.onclick = () => window.open(imgSrc, '_blank');
+            msgDiv.appendChild(img);
 
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
