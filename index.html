@@ -64,25 +64,24 @@
             gap: 15px;
         }
 
-        /* ECHTES ÇUKUR SYMBOL (SVG) */
-        .cukur-svg-symbol {
-            width: 32px;
-            height: 48px;
-            filter: drop-shadow(0 0 8px #ff0015);
+        /* HQ ECHTES ÇUKUR LOGO (SVG) */
+        .cukur-hq-logo {
+            width: 45px;
+            height: 50px;
+            filter: drop-shadow(0 0 10px #ff0015);
             animation: pulseGlow 2.5s infinite alternate;
         }
 
         @keyframes pulseGlow {
             from { filter: drop-shadow(0 0 4px #ff0015); }
-            to { filter: drop-shadow(0 0 12px #ff0015); }
+            to { filter: drop-shadow(0 0 16px #ff0015); }
         }
 
-        /* FIX FÜR BILDER: Zweites Bild komplett sichtbar machen */
         .header-deko-img {
-            height: 65px;
+            height: 60px;
             width: auto;
-            max-width: 130px;
-            object-fit: contain; /* Kein Abschneiden mehr */
+            max-width: 120px;
+            object-fit: contain;
             background: rgba(0, 0, 0, 0.5);
             border-radius: 8px;
             border: 2px solid #ff0015;
@@ -97,26 +96,61 @@
         .nav-links {
             display: flex;
             align-items: center;
+            gap: 8px;
         }
 
-        .nav-links button {
+        .nav-links a, .nav-links button {
             background: rgba(0, 0, 0, 0.6);
             border: 1px solid #ff0015;
             color: #ffffff;
-            padding: 8px 18px;
+            padding: 8px 14px;
             cursor: pointer;
             font-weight: bold;
-            margin-left: 10px;
             text-transform: uppercase;
+            text-decoration: none;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             box-shadow: 0 0 8px rgba(255, 0, 21, 0.2);
+            display: inline-block;
         }
 
-        .nav-links button:hover {
+        .nav-links a:hover, .nav-links button:hover {
             background: #ff0015;
             color: #ffffff;
             box-shadow: 0 0 20px rgba(255, 0, 21, 0.8);
             transform: translateY(-2px);
+        }
+
+        /* BANNER FÜR AUTOMATISCHE SPRACHABFRAGE */
+        #translation-banner {
+            display: none;
+            background: rgba(20, 10, 15, 0.95);
+            border-bottom: 2px solid #ff0015;
+            padding: 12px 25px;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 0, 21, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .banner-buttons button {
+            padding: 6px 14px;
+            margin-left: 8px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-yes {
+            background: #ff0015;
+            color: #fff;
+            box-shadow: 0 0 8px rgba(255, 0, 21, 0.6);
+        }
+
+        .btn-no {
+            background: #333344;
+            color: #ccc;
         }
 
         #chat-box {
@@ -161,6 +195,16 @@
             border: 1px solid rgba(255, 0, 21, 0.5);
             padding: 8px 20px;
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.2);
+        }
+
+        .translated-text {
+            display: block;
+            font-size: 0.82rem;
+            color: #ff8892;
+            margin-top: 4px;
+            font-style: italic;
+            border-top: 1px dotted rgba(255, 0, 21, 0.4);
+            padding-top: 3px;
         }
 
         .nickname-tag {
@@ -284,23 +328,35 @@
     <div class="app-container">
         <header>
             <div class="logo">
-                <!-- ECHTES EINGEBAUTES ÇUKUR-SYMBOL -->
-                <svg class="cukur-svg-symbol" viewBox="0 0 100 160" fill="#ff0015">
-                    <polygon points="50,10 10,40 25,40 50,22 75,40 90,40"/>
-                    <circle cx="50" cy="60" r="7"/>
-                    <circle cx="50" cy="85" r="7"/>
-                    <circle cx="50" cy="110" r="7"/>
-                    <polygon points="50,150 10,120 25,120 50,138 75,120 90,120"/>
+                <!-- PERFEKTES ECHTES ÇUKUR SYMBOL -->
+                <svg class="cukur-hq-logo" viewBox="0 0 100 180" fill="#ff0015">
+                    <path d="M50 15 L15 50 L28 50 L50 28 L72 50 L85 50 Z"/>
+                    <circle cx="50" cy="70" r="8"/>
+                    <circle cx="50" cy="95" r="8"/>
+                    <circle cx="50" cy="120" r="8"/>
+                    <path d="M50 165 L15 130 L28 130 L50 152 L72 130 L85 130 Z"/>
                 </svg>
                 KDS CHAT
                 <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6098.png" class="header-deko-img" alt="Deko 1">
                 <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6093.jpg" class="header-deko-img" alt="Deko 2">
             </div>
             <div class="nav-links">
+                <!-- EXTERNE LINKS -->
+                <a href="https://kdservices1.github.io/CUKUR-KD/" target="_blank">Website</a>
+                <a href="https://discord.gg/zrMp8zwhCW" target="_blank">Discord</a>
                 <button onclick="openModal('rules-modal')">Rules</button>
                 <button onclick="openModal('about-modal')">About</button>
             </div>
         </header>
+
+        <!-- BENACHRICHTIGUNGS-BANNER FÜR ÜBERSETZUNG -->
+        <div id="translation-banner">
+            <span id="banner-text">We detected your language. Enable live translation?</span>
+            <div class="banner-buttons">
+                <button class="btn-yes" onclick="setTranslation(true)">Yes</button>
+                <button class="btn-no" onclick="setTranslation(false)">No (English)</button>
+            </div>
+        </div>
 
         <div id="chat-box"></div>
 
@@ -350,7 +406,45 @@
         let myNickname = 'Anonymous';
         let myColor = getRandomColor();
 
+        // ÜBERSETZUNGSEINSTELLUNGEN
+        let autoTranslate = false;
+        let userLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
+
+        const prompts = {
+            tr: 'Türkçe tespit edildi. Sohbet mesajları Türkçeye çevrilsin mi?',
+            de: 'Deutsch erkannt. Sollen Nachrichten auf Deutsch übersetzt werden?',
+            es: 'Idioma detectado. ¿Quieres traducir los mensajes a Español?',
+            fr: 'Langue détectée. Voulez-vous traduire les messages en Français?',
+            en: 'Enable live auto-translation to your language?'
+        };
+
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
+
+        function initTranslationCheck() {
+            if (userLang !== 'en') {
+                const text = prompts[userLang] || `Detected your language (${userLang.toUpperCase()}). Enable live translation?`;
+                document.getElementById('banner-text').innerText = text;
+                document.getElementById('translation-banner').style.display = 'flex';
+            }
+        }
+
+        function setTranslation(enable) {
+            autoTranslate = enable;
+            document.getElementById('translation-banner').style.display = 'none';
+        }
+
+        async function translateText(text, targetLang) {
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${targetLang}`);
+                const data = await res.json();
+                if (data && data.responseData) {
+                    return data.responseData.translatedText;
+                }
+            } catch (e) {
+                console.error("Translation error", e);
+            }
+            return null;
+        }
 
         function getRandomColor() {
             const colors = ['#00ffcc', '#ff007f', '#ffcc00', '#00ff66', '#ff6600', '#9933ff', '#00bfff', '#ff3300', '#33ff33'];
@@ -363,6 +457,7 @@
                 myNickname = nickVal;
             }
             closeModal('nickname-modal');
+            initTranslationCheck();
             connectServer();
         }
 
@@ -381,7 +476,7 @@
                 }));
             };
 
-            socket.onmessage = (event) => {
+            socket.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
                 if (data.type === 'system') {
                     appendMessage(data.message, 'system-message');
@@ -428,7 +523,7 @@
 
         function handleKey(e) { if (e.key === 'Enter') sendMessage(); }
 
-        function appendMessage(text, className, nick = null, color = null) {
+        async function appendMessage(text, className, nick = null, color = null) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', className);
 
@@ -442,6 +537,17 @@
                 const textSpan = document.createElement('span');
                 textSpan.innerText = text;
                 msgDiv.appendChild(textSpan);
+
+                // Wenn automatische Übersetzung aktiv ist und es eine Fremdnachricht ist
+                if (autoTranslate && className === 'stranger-message') {
+                    const translated = await translateText(text, userLang);
+                    if (translated && translated.toLowerCase() !== text.toLowerCase()) {
+                        const transSpan = document.createElement('span');
+                        transSpan.classList.add('translated-text');
+                        transSpan.innerText = `🌐 (${userLang.toUpperCase()}): ${translated}`;
+                        msgDiv.appendChild(transSpan);
+                    }
+                }
             } else {
                 msgDiv.innerText = text;
             }
