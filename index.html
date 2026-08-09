@@ -1,712 +1,1245 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>KDS CHAT - Anonymous Chat</title>
+
     <style>
+
         * {
+
             box-sizing: border-box;
+
             margin: 0;
+
             padding: 0;
+
             font-family: 'Consolas', 'Courier New', monospace, sans-serif;
+
         }
+
+
 
         body {
+
             background: url('https://media.giphy.com/media/ifLnmjGWXRZrFbgC3O/giphy.gif') no-repeat center center fixed;
+
             background-size: cover;
+
             color: #ffffff;
+
             display: flex;
+
             flex-direction: column;
+
             height: 100vh;
+
             overflow: hidden;
+
         }
+
+
 
         .bg-overlay {
+
             position: absolute;
+
             top: 0;
+
             left: 0;
+
             width: 100%;
+
             height: 100%;
+
             background: rgba(5, 5, 8, 0.82);
+
             backdrop-filter: blur(4px);
+
             z-index: 1;
+
         }
+
+
 
         .app-container {
+
             position: relative;
+
             z-index: 2;
+
             display: flex;
+
             flex-direction: column;
+
             height: 100vh;
+
             width: 100%;
+
         }
+
+
 
         header {
+
             background: rgba(12, 12, 16, 0.95);
+
             padding: 12px 25px;
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             border-bottom: 2px solid #ff0015;
+
             box-shadow: 0 0 15px rgba(255, 0, 21, 0.4);
+
         }
+
+
 
         .logo-container {
+
             display: flex;
+
             align-items: center;
+
             gap: 20px;
+
         }
+
+
 
         .logo {
+
             font-size: 1.6rem;
+
             font-weight: 900;
+
             color: #ffffff;
+
             letter-spacing: 2px;
+
             text-transform: uppercase;
+
             text-shadow: 0 0 10px rgba(255, 0, 21, 0.8);
+
             display: flex;
+
             align-items: center;
+
             gap: 15px;
+
         }
+
+
 
         .cukur-hq-logo {
+
             width: 45px;
+
             height: 50px;
+
             filter: drop-shadow(0 0 10px #ff0015);
+
             animation: pulseGlow 2.5s infinite alternate;
+
         }
+
+
 
         @keyframes pulseGlow {
+
             from { filter: drop-shadow(0 0 4px #ff0015); }
+
             to { filter: drop-shadow(0 0 16px #ff0015); }
+
         }
+
+
+
+        /* GROSSE HORIZONTALE BILDER IM HEADER */
 
         .header-images-wrapper {
+
             display: flex;
+
             flex-direction: row;
+
             align-items: center;
+
             gap: 15px;
+
         }
+
+
 
         .header-deko-img {
+
             height: 120px;
+
             width: auto;
+
             max-width: 220px;
+
             object-fit: contain;
+
             background: rgba(0, 0, 0, 0.6);
+
             border-radius: 8px;
+
             border: 2px solid #ff0015;
+
             box-shadow: 0 0 20px rgba(255, 0, 21, 0.8);
+
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+
         }
+
+
 
         .header-deko-img:hover {
+
             transform: scale(1.08);
+
             box-shadow: 0 0 30px rgba(255, 0, 21, 1);
+
         }
+
+
 
         .nav-links {
+
             display: flex;
+
             align-items: center;
+
             gap: 8px;
+
         }
+
+
 
         .nav-links a, .nav-links button {
+
             background: rgba(0, 0, 0, 0.6);
+
             border: 1px solid #ff0015;
+
             color: #ffffff;
+
             padding: 10px 16px;
+
             cursor: pointer;
+
             font-weight: bold;
+
             text-transform: uppercase;
+
             text-decoration: none;
+
             font-size: 0.85rem;
+
             transition: all 0.3s ease;
+
             box-shadow: 0 0 8px rgba(255, 0, 21, 0.2);
+
             display: inline-block;
+
         }
+
+
 
         .nav-links a:hover, .nav-links button:hover {
+
             background: #ff0015;
+
             color: #ffffff;
+
             box-shadow: 0 0 20px rgba(255, 0, 21, 0.8);
+
             transform: translateY(-2px);
+
         }
+
+
 
         #translation-banner {
+
             display: none;
+
             background: rgba(20, 10, 15, 0.95);
+
             border-bottom: 2px solid #ff0015;
+
             padding: 12px 25px;
+
             justify-content: space-between;
+
             align-items: center;
+
             box-shadow: 0 4px 15px rgba(255, 0, 21, 0.3);
+
             font-size: 0.9rem;
-            gap: 15px;
-            flex-wrap: wrap;
+
         }
 
-        .banner-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
 
-        .banner-controls select {
-            background: #050508;
-            color: #ffffff;
-            border: 1px solid #ff0015;
-            padding: 6px 10px;
-            font-weight: bold;
-            outline: none;
-            cursor: pointer;
-        }
 
         .banner-buttons button {
+
             padding: 6px 14px;
-            margin-left: 5px;
+
+            margin-left: 8px;
+
             font-weight: bold;
+
             border: none;
+
             cursor: pointer;
+
             text-transform: uppercase;
+
         }
+
+
 
         .btn-yes {
+
             background: #ff0015;
+
             color: #fff;
+
             box-shadow: 0 0 8px rgba(255, 0, 21, 0.6);
+
         }
+
+
 
         .btn-no {
+
             background: #333344;
+
             color: #ccc;
+
         }
+
+
 
         #chat-box {
+
             flex: 1;
+
             padding: 25px;
+
             overflow-y: auto;
+
             display: flex;
+
             flex-direction: column;
+
             gap: 15px;
+
         }
+
+
 
         .message {
+
             max-width: 65%;
+
             padding: 14px 18px;
+
             border-radius: 4px;
+
             font-size: 0.95rem;
+
             line-height: 1.4;
+
             word-wrap: break-word;
+
         }
+
+
 
         .my-message {
+
             align-self: flex-end;
+
             background: rgba(15, 15, 20, 0.95);
+
             color: #ffffff;
+
             border-right: 3px solid #ff0015;
+
             box-shadow: 0 0 12px rgba(255, 0, 21, 0.3);
+
         }
+
+
 
         .stranger-message {
+
             align-self: flex-start;
+
             background: rgba(20, 20, 28, 0.95);
+
             color: #eeeeee;
+
             border-left: 3px solid #ff0015;
+
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+
         }
+
+
 
         .system-message {
+
             align-self: center;
+
             background: rgba(0, 0, 0, 0.75);
+
             color: #ff4d5a;
+
             font-size: 0.85rem;
+
             border: 1px solid rgba(255, 0, 21, 0.5);
+
             padding: 8px 20px;
+
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.2);
+
         }
+
+
 
         .translated-text {
+
             display: block;
+
             font-size: 0.82rem;
+
             color: #ff8892;
+
             margin-top: 4px;
+
             font-style: italic;
+
             border-top: 1px dotted rgba(255, 0, 21, 0.4);
+
             padding-top: 3px;
+
         }
+
+
 
         .nickname-tag {
+
             font-weight: 900;
+
             margin-right: 6px;
+
             text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000, 1px -1px 2px #000000, -1px 1px 2px #000000;
+
         }
+
+
 
         #input-container {
+
             background: rgba(12, 12, 16, 0.95);
+
             padding: 18px;
+
             display: flex;
+
             gap: 12px;
+
             border-top: 1px solid rgba(255, 0, 21, 0.4);
+
             box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
+
         }
+
+
 
         input[type="text"] {
+
             flex: 1;
+
             background: rgba(5, 5, 8, 0.8);
+
             border: 1px solid #333344;
+
             color: #ffffff;
+
             padding: 14px;
+
             outline: none;
+
             font-size: 1rem;
+
             transition: all 0.3s ease;
+
         }
+
+
 
         input[type="text"]:focus {
+
             border-color: #ff0015;
+
             box-shadow: 0 0 12px rgba(255, 0, 21, 0.5);
+
         }
+
+
 
         .action-btn {
+
             padding: 14px 26px;
+
             border: none;
+
             font-weight: bold;
+
             cursor: pointer;
+
             text-transform: uppercase;
+
             letter-spacing: 1px;
+
             transition: all 0.2s ease;
+
         }
+
+
 
         #send-btn {
+
             background: #ff0015;
+
             color: #ffffff;
+
             box-shadow: 0 0 12px rgba(255, 0, 21, 0.5);
+
         }
+
+
 
         #send-btn:hover {
+
             background: #e00013;
+
             box-shadow: 0 0 20px rgba(255, 0, 21, 0.9);
+
             transform: scale(1.02);
+
         }
+
+
 
         #skip-btn {
+
             background: rgba(30, 30, 40, 0.8);
+
             color: #ffffff;
+
             border: 1px solid #444455;
+
         }
+
+
 
         #skip-btn:hover {
+
             background: rgba(50, 50, 65, 0.9);
+
             border-color: #ff0015;
+
         }
+
+
 
         .modal {
+
             display: none;
+
             position: fixed;
+
             top: 0;
+
             left: 0;
+
             width: 100%;
+
             height: 100%;
+
             background: rgba(0, 0, 0, 0.88);
+
             justify-content: center;
+
             align-items: center;
+
             z-index: 100;
+
         }
+
+
 
         .modal-content {
+
             background: #0d0d12;
+
             border: 2px solid #ff0015;
+
             box-shadow: 0 0 25px rgba(255, 0, 21, 0.6);
+
             padding: 30px;
+
             max-width: 480px;
+
             width: 90%;
+
             color: #dddddd;
+
         }
+
+
 
         .modal-content h2 {
+
             color: #ffffff;
+
             margin-bottom: 15px;
+
             border-bottom: 1px solid #ff0015;
+
             padding-bottom: 8px;
+
             text-shadow: 0 0 8px rgba(255, 0, 21, 0.6);
+
         }
+
+
+
+        /* FARBWÄHLER STYLING */
 
         .color-picker-container {
+
             margin-top: 15px;
+
             display: flex;
+
             align-items: center;
+
             gap: 12px;
+
             background: rgba(5, 5, 8, 0.8);
+
             padding: 10px;
+
             border: 1px solid #333344;
+
         }
+
+
 
         .color-picker-container input[type="color"] {
+
             -webkit-appearance: none;
+
             border: 1px solid #ff0015;
+
             width: 40px;
+
             height: 40px;
+
             cursor: pointer;
+
             background: none;
+
         }
+
+
 
         .color-picker-container input[type="color"]::-webkit-color-swatch-wrapper {
+
             padding: 0;
+
         }
+
+
 
         .color-picker-container input[type="color"]::-webkit-color-swatch {
+
             border: none;
+
         }
+
+
 
         .modal-content button {
+
             width: 100%;
+
             padding: 12px;
+
             background: #ff0015;
+
             color: #ffffff;
+
             border: none;
+
             font-weight: bold;
+
             cursor: pointer;
+
             margin-top: 18px;
+
             text-transform: uppercase;
+
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.5);
+
             transition: all 0.2s ease;
+
         }
 
+
+
         .modal-content button:hover {
+
             box-shadow: 0 0 20px rgba(255, 0, 21, 0.9);
+
         }
+
     </style>
+
 </head>
+
 <body>
+
+
 
     <div class="bg-overlay"></div>
 
+
+
     <div class="app-container">
+
         <header>
+
             <div class="logo-container">
+
                 <div class="logo">
+
                     <svg class="cukur-hq-logo" viewBox="0 0 100 180" fill="#ff0015">
+
                         <path d="M50 15 L15 50 L28 50 L50 28 L72 50 L85 50 Z"/>
+
                         <circle cx="50" cy="70" r="8"/>
+
                         <circle cx="50" cy="95" r="8"/>
+
                         <circle cx="50" cy="120" r="8"/>
+
                         <path d="M50 165 L15 130 L28 130 L50 152 L72 130 L85 130 Z"/>
+
                     </svg>
+
                     KDS CHAT
+
                 </div>
+
+
+
+                <!-- GROSSE HORIZONTALE DEKO-BILDER -->
 
                 <div class="header-images-wrapper">
+
                     <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6098.png" class="header-deko-img" alt="Deko 1">
+
                     <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6093.jpg" class="header-deko-img" alt="Deko 2">
+
                 </div>
+
             </div>
+
+
 
             <div class="nav-links">
+
                 <a href="https://kdservices1.github.io/CUKUR-KD/" target="_blank">Website</a>
+
                 <a href="https://discord.gg/zrMp8zwhCW" target="_blank">Discord</a>
+
                 <button onclick="openModal('rules-modal')">Rules</button>
+
                 <button onclick="openModal('about-modal')">About</button>
+
             </div>
+
         </header>
 
+
+
         <div id="translation-banner">
-            <span>Live Translation:</span>
-            <div class="banner-controls">
-                <select id="lang-select">
-                    <option value="de">German (Deutsch)</option>
-                    <option value="en">English</option>
-                    <option value="tr">Turkish (Türkçe)</option>
-                    <option value="es">Spanish (Español)</option>
-                    <option value="fr">French (Français)</option>
-                    <option value="ru">Russian (Русский)</option>
-                    <option value="ar">Arabic (العربية)</option>
-                    <option value="it">Italian (Italiano)</option>
-                </select>
-                <div class="banner-buttons">
-                    <button class="btn-yes" onclick="setTranslation(true)">Enable</button>
-                    <button class="btn-no" onclick="setTranslation(false)">Disable</button>
-                </div>
+
+            <span id="banner-text">We detected your language. Enable live translation?</span>
+
+            <div class="banner-buttons">
+
+                <button class="btn-yes" onclick="setTranslation(true)">Yes</button>
+
+                <button class="btn-no" onclick="setTranslation(false)">No (English)</button>
+
             </div>
+
         </div>
+
+
 
         <div id="chat-box"></div>
 
+
+
         <div id="input-container">
+
             <button class="action-btn" id="skip-btn" onclick="skipStranger()">Skip</button>
+
             <input type="text" id="msg-input" placeholder="Write a message..." onkeypress="handleKey(event)">
+
             <button class="action-btn" id="send-btn" onclick="sendMessage()">Send</button>
+
         </div>
+
     </div>
 
-    <!-- Modal: Nickname Setup -->
+
+
+    <!-- Modal: Nickname & Farbwähler Setup -->
+
     <div id="nickname-modal" class="modal" style="display: flex;">
+
         <div class="modal-content">
+
             <h2>Enter Your Nickname</h2>
+
             <p style="margin-bottom: 12px; color: #aaaaaa;">Choose a name and your custom color:</p>
+
             
+
             <input type="text" id="nickname-input" placeholder="e.g. BOGA" maxlength="15" style="width: 100%;" onkeypress="handleNickKey(event)">
+
             
+
+            <!-- FARBWÄHLER EINGEBAUT -->
+
             <div class="color-picker-container">
+
                 <input type="color" id="color-input" value="#00bfff">
+
                 <label for="color-input" style="font-size: 0.9rem; color: #ffffff;">Choose Nickname Color</label>
+
             </div>
 
+
+
             <button onclick="saveNickname()">Join Chat</button>
+
         </div>
+
     </div>
+
+
 
     <!-- Modal: Rules -->
+
     <div id="rules-modal" class="modal">
+
         <div class="modal-content">
+
             <h2>Rules & Safety</h2>
+
             <p style="color: #ff0015; font-weight: bold; margin-bottom: 10px;">Age Limit: 16+</p>
+
             <p><strong>Zero Tolerance Policy:</strong> Strictly no CP / Child Sexual Abuse Material or related discussion.</p>
+
             <p style="font-size: 0.85rem; margin-top: 10px; color: #aaaaaa;">Any attempt to discuss or share illegal content will result in an immediate automatic kick.</p>
+
             <button onclick="closeModal('rules-modal')">I Understand</button>
+
         </div>
+
     </div>
+
+
 
     <!-- Modal: About -->
+
     <div id="about-modal" class="modal">
+
         <div class="modal-content">
+
             <h2>About</h2>
+
             <p>Hey, I'm <strong>KD</strong>. I'm a 16-year-old developer who created this random chat project for fun and out of boredom. Connect and chat with people worldwide anonymously!</p>
+
             <button onclick="closeModal('about-modal')">Close</button>
+
         </div>
+
     </div>
 
+
+
     <script>
+
         const chatBox = document.getElementById('chat-box');
+
         const msgInput = document.getElementById('msg-input');
-        const langSelect = document.getElementById('lang-select');
+
         
+
         const SERVER_URL = 'wss://kds-chat-server.onrender.com';
+
         let socket;
+
         let myNickname = 'Anonymous';
+
         let myColor = '#00bfff';
-        let isAdmin = false;
+
+
 
         let autoTranslate = false;
-        let targetLang = (navigator.language || navigator.userLanguage || 'de').substring(0, 2).toLowerCase();
+
+        let userLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
+
+
+
+        const prompts = {
+
+            tr: 'Türkçe tespit edildi. Sohbet mesajları Türkçeye çevrilsin mi?',
+
+            de: 'Deutsch erkannt. Sollen Nachrichten auf Deutsch übersetzt werden?',
+
+            es: 'Idioma detectado. ¿Quieres traducir los mensajes a Español?',
+
+            fr: 'Langue détectée. Voulez-vous traduire les messages en Français?',
+
+            en: 'Enable live auto-translation to your language?'
+
+        };
+
+
 
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
 
+
+
+        // Setzt beim Start eine Zufallsfarbe als Standardwert im Picker
+
         document.getElementById('color-input').value = getRandomColor();
 
+
+
         function initTranslationCheck() {
-            if (langSelect.querySelector(`option[value="${targetLang}"]`)) {
-                langSelect.value = targetLang;
-            } else {
-                langSelect.value = 'en';
+
+            if (userLang !== 'en') {
+
+                const text = prompts[userLang] || `Detected your language (${userLang.toUpperCase()}). Enable live translation?`;
+
+                document.getElementById('banner-text').innerText = text;
+
+                document.getElementById('translation-banner').style.display = 'flex';
+
             }
-            document.getElementById('translation-banner').style.display = 'flex';
+
         }
+
+
 
         function setTranslation(enable) {
+
             autoTranslate = enable;
-            targetLang = langSelect.value;
-            if (enable) {
-                appendMessage(`Live translation enabled to [${targetLang.toUpperCase()}].`, 'system-message');
-            } else {
-                appendMessage('Live translation disabled.', 'system-message');
-            }
+
+            document.getElementById('translation-banner').style.display = 'none';
+
         }
 
-        async function translateText(text, target) {
+
+
+        async function translateText(text, targetLang) {
+
             try {
-                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${target}`);
+
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${targetLang}`);
+
                 const data = await res.json();
+
                 if (data && data.responseData) {
+
                     return data.responseData.translatedText;
+
                 }
+
             } catch (e) {
+
                 console.error("Translation error", e);
+
             }
+
             return null;
+
         }
+
+
 
         function getRandomColor() {
+
             const colors = ['#00ffcc', '#ff007f', '#ffcc00', '#00ff66', '#ff6600', '#9933ff', '#00bfff', '#ff3300', '#33ff33'];
+
             return colors[Math.floor(Math.random() * colors.length)];
+
         }
+
+
 
         function saveNickname() {
+
             const nickVal = document.getElementById('nickname-input').value.trim();
+
             const colorVal = document.getElementById('color-input').value;
+
             
-            if (nickVal) { myNickname = nickVal; }
-            if (colorVal) { myColor = colorVal; }
+
+            if (nickVal) {
+
+                myNickname = nickVal;
+
+            }
+
+            if (colorVal) {
+
+                myColor = colorVal;
+
+            }
+
+
 
             closeModal('nickname-modal');
+
             initTranslationCheck();
+
             connectServer();
+
         }
+
+
 
         function handleNickKey(e) {
+
             if (e.key === 'Enter') saveNickname();
+
         }
 
-        function setSingleStatus(statusText) {
-            chatBox.innerHTML = ''; // Vorherige Nachrichten beim Suchen leeren
-            appendMessage(statusText, 'system-message');
-        }
+
 
         function connectServer() {
-            setSingleStatus('Connecting to server...');
+
             socket = new WebSocket(SERVER_URL);
 
+
+
             socket.onopen = () => {
+
                 socket.send(JSON.stringify({
+
                     type: 'join',
+
                     nick: myNickname,
+
                     color: myColor
+
                 }));
-                setSingleStatus('Looking for a stranger...');
+
             };
+
+
 
             socket.onmessage = async (event) => {
+
                 const data = JSON.parse(event.data);
-                
-                // Sobald gematcht wird -> 'Connected to a stranger!' anzeigen
-                if (data.type === 'matched') {
-                    setSingleStatus('Connected to a stranger!');
-                } else if (data.type === 'waiting' || data.type === 'searching') {
-                    setSingleStatus('Looking for a stranger...');
-                } else if (data.type === 'system') {
-                    if (data.message.toLowerCase().includes('disconnected') || data.message.toLowerCase().includes('left')) {
-                        setSingleStatus('Stranger disconnected. Looking for a new stranger...');
-                    } else {
-                        appendMessage(data.message, 'system-message');
-                    }
-                } else if (data.type === 'admin_ok') {
-                    isAdmin = true;
+
+                if (data.type === 'system') {
+
                     appendMessage(data.message, 'system-message');
+
                 } else if (data.type === 'message') {
+
                     const senderNick = data.nick || 'Stranger';
+
                     const senderColor = data.color || '#ff0015';
+
                     appendMessage(data.text, 'stranger-message', senderNick, senderColor);
+
                 }
+
             };
+
+
 
             socket.onclose = () => {
-                setSingleStatus('Disconnected from server. Reconnecting in 3s...');
+
+                appendMessage('Disconnected from server. Reconnecting in 3s...', 'system-message');
+
                 setTimeout(connectServer, 3000);
+
             };
+
         }
+
+
 
         function sendMessage() {
+
             const text = msgInput.value.trim();
+
             if (!text) return;
 
-            // Admin Login Befehl: /admin Kaan
-            if (text.startsWith('/admin ')) {
-                const pass = text.split(' ')[1];
-                socket.send(JSON.stringify({ type: 'admin_auth', password: pass }));
-                msgInput.value = '';
-                return;
-            }
 
-            // Admin Ban Befehl
-            if (text.startsWith('/ban ')) {
-                const targetNick = text.substring(5).trim();
-                if (!isAdmin) {
-                    appendMessage('❌ Error: You do not have admin permissions!', 'system-message');
-                    msgInput.value = '';
-                    return;
-                }
-                socket.send(JSON.stringify({ type: 'admin_ban', target: targetNick }));
-                msgInput.value = '';
-                return;
-            }
 
-            // Admin Unban Befehl
-            if (text.startsWith('/unban ')) {
-                const targetNick = text.substring(7).trim();
-                if (!isAdmin) {
-                    appendMessage('❌ Error: You do not have admin permissions!', 'system-message');
-                    msgInput.value = '';
-                    return;
-                }
-                socket.send(JSON.stringify({ type: 'admin_unban', target: targetNick }));
-                msgInput.value = '';
-                return;
-            }
-
-            // Admin Unban IP Befehl
-            if (text.startsWith('/unbanip ')) {
-                const targetIP = text.substring(9).trim();
-                if (!isAdmin) {
-                    appendMessage('❌ Error: You do not have admin permissions!', 'system-message');
-                    msgInput.value = '';
-                    return;
-                }
-                socket.send(JSON.stringify({ type: 'admin_unban_ip', ip: targetIP }));
-                msgInput.value = '';
-                return;
-            }
-
-            // Chat Moderation Filter
             if (forbiddenPattern.test(text)) {
+
                 alert('Violation detected. You have been disconnected.');
+
                 socket.close();
+
                 location.reload();
+
                 return;
+
             }
+
+
 
             if (socket && socket.readyState === WebSocket.OPEN) {
+
                 socket.send(JSON.stringify({ 
+
                     type: 'message', 
+
                     text: text
+
                 }));
+
                 appendMessage(text, 'my-message', myNickname, myColor);
+
                 msgInput.value = '';
+
             }
+
         }
+
+
 
         function skipStranger() {
+
             if (socket && socket.readyState === WebSocket.OPEN) {
+
                 socket.send(JSON.stringify({ type: 'skip' }));
-                setSingleStatus('Looking for a new stranger...');
+
+                chatBox.innerHTML = '';
+
             }
+
         }
+
+
 
         function handleKey(e) { if (e.key === 'Enter') sendMessage(); }
 
+
+
         async function appendMessage(text, className, nick = null, color = null) {
+
             const msgDiv = document.createElement('div');
+
             msgDiv.classList.add('message', className);
 
+
+
             if (nick && color) {
+
                 const nickSpan = document.createElement('span');
+
                 nickSpan.classList.add('nickname-tag');
+
                 nickSpan.style.color = color;
+
                 nickSpan.innerText = nick + ': ';
+
                 msgDiv.appendChild(nickSpan);
 
+
+
                 const textSpan = document.createElement('span');
+
                 textSpan.innerText = text;
+
                 msgDiv.appendChild(textSpan);
 
+
+
                 if (autoTranslate && className === 'stranger-message') {
-                    const translated = await translateText(text, targetLang);
+
+                    const translated = await translateText(text, userLang);
+
                     if (translated && translated.toLowerCase() !== text.toLowerCase()) {
+
                         const transSpan = document.createElement('span');
+
                         transSpan.classList.add('translated-text');
-                        transSpan.innerText = `🌐 (${targetLang.toUpperCase()}): ${translated}`;
+
+                        transSpan.innerText = `🌐 (${userLang.toUpperCase()}): ${translated}`;
+
                         msgDiv.appendChild(transSpan);
+
                     }
+
                 }
+
             } else {
+
                 msgDiv.innerText = text;
+
             }
 
+
+
             chatBox.appendChild(msgDiv);
+
             chatBox.scrollTop = chatBox.scrollHeight;
+
         }
 
+
+
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
     </script>
+
 </body>
+
 </html>
