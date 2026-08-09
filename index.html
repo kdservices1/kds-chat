@@ -13,9 +13,7 @@
         }
 
         body {
-            /* Lebendiger Red Galaxy Deep-Space Hintergrund */
-            background: radial-gradient(circle at 50% 50%, #240306 0%, #0d0102 50%, #030000 100%);
-            background-size: cover;
+            background: #030000;
             color: #ffffff;
             display: flex;
             flex-direction: column;
@@ -24,36 +22,14 @@
             position: relative;
         }
 
-        /* Lebendiger animierter Galaxy-Sternen- und Nebel-Effekt */
-        body::before {
-            content: "";
+        /* Canvas für den animierten roten Warp-Sternenhintergrund */
+        #space-canvas {
             position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background-image: 
-                radial-gradient(white 1px, transparent 0),
-                radial-gradient(rgba(255, 0, 21, 0.8) 2px, transparent 0),
-                radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 0);
-            background-size: 350px 350px, 200px 200px, 100px 100px;
-            background-position: 0 0, 40px 60px, 130px 90px;
-            animation: rotateGalaxy 120s linear infinite;
-            opacity: 0.35;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
-            pointer-events: none;
-        }
-
-        @keyframes rotateGalaxy {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Zusätzlicher roter Leuchtnebel für Tiefe */
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 0, 21, 0.18) 0%, transparent 60%),
-                        radial-gradient(circle at 70% 80%, rgba(180, 0, 15, 0.12) 0%, transparent 50%);
-            z-index: 2;
             pointer-events: none;
         }
 
@@ -63,14 +39,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(4, 4, 6, 0.65);
-            backdrop-filter: blur(5px);
-            z-index: 3;
+            background: rgba(4, 4, 6, 0.5); /* Leichtes Abdunkeln für perfekte Lesbarkeit des Chats */
+            backdrop-filter: blur(3px);
+            z-index: 2;
+            pointer-events: none;
         }
 
         .app-container {
             position: relative;
-            z-index: 4;
+            z-index: 3;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -413,6 +390,8 @@
 </head>
 <body>
 
+    <!-- Canvas für den animierten roten Warp-Background -->
+    <canvas id="space-canvas"></canvas>
     <div class="bg-overlay"></div>
 
     <div class="app-container">
@@ -498,6 +477,67 @@
     </div>
 
     <script>
+        /* --- Roter Warp-Sterne Live-Hintergrund Animation --- */
+        const canvas = document.getElementById('space-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const starsCount = 70;
+        const stars = [];
+
+        for (let i = 0; i < starsCount; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                length: Math.random() * 40 + 10,
+                speed: Math.random() * 3 + 1,
+                opacity: Math.random() * 0.7 + 0.3
+            });
+        }
+
+        function animateSpace() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < stars.length; i++) {
+                let star = stars[i];
+
+                // Farbverlauf für jede Linie von transparentem Dunkelrot zu hellem Rot/Weiß
+                let grad = ctx.createLinearGradient(star.x, star.y, star.x - star.length, star.y - star.length);
+                grad.addColorStop(0, `rgba(255, 0, 21, ${star.opacity})`);
+                grad.addColorStop(1, 'rgba(255, 100, 100, 0)');
+
+                ctx.strokeStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(star.x, star.y);
+                ctx.lineTo(star.x - star.length, star.y - star.length);
+                ctx.stroke();
+
+                // Bewegung diagonal nach unten rechts (wie im Bild)
+                star.x += star.speed;
+                star.y += star.speed;
+
+                // Wenn der Stern aus dem Bild läuft, oben links neu starten
+                if (star.x > canvas.width + 50 || star.y > canvas.height + 50) {
+                    star.x = Math.random() * canvas.width - 50;
+                    star.y = -50;
+                    star.length = Math.random() * 40 + 10;
+                    star.speed = Math.random() * 3 + 1;
+                }
+            }
+
+            requestAnimationFrame(animateSpace);
+        }
+        animateSpace();
+
+
+        /* --- Chat Logik & WebSocket --- */
         const chatBox = document.getElementById('chat-box');
         const msgInput = document.getElementById('msg-input');
         
