@@ -547,9 +547,13 @@
             if (e.key === 'Enter') saveNickname();
         }
 
+        function setSingleStatus(statusText) {
+            chatBox.innerHTML = ''; // Vorherigen Verlauf sofort leeren!
+            appendMessage(statusText, 'system-message');
+        }
+
         function connectServer() {
-            chatBox.innerHTML = '';
-            appendMessage('Connecting to server...', 'system-message');
+            setSingleStatus('Connecting to server...');
             socket = new WebSocket(SERVER_URL);
 
             socket.onopen = () => {
@@ -558,18 +562,24 @@
                     nick: myNickname,
                     color: myColor
                 }));
-                appendMessage('Looking for a stranger...', 'system-message');
+                setSingleStatus('Looking for a stranger...');
             };
 
             socket.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'matched') {
-                    // Neues Match bestätigt: Chatverlauf leeren
-                    chatBox.innerHTML = '';
-                    appendMessage('Connected to a stranger!', 'system-message');
+                    // Match hergestellt: Chatbox säubern und "Connected" anzeigen
+                    setSingleStatus('Connected to a stranger!');
+                } else if (data.type === 'waiting' || data.type === 'searching') {
+                    setSingleStatus('Looking for a stranger...');
                 } else if (data.type === 'system') {
-                    appendMessage(data.message, 'system-message');
+                    // Falls die Gegenpartei abhaut:
+                    if (data.message.toLowerCase().includes('disconnected') || data.message.toLowerCase().includes('left')) {
+                        setSingleStatus('Stranger disconnected. Looking for a new stranger...');
+                    } else {
+                        appendMessage(data.message, 'system-message');
+                    }
                 } else if (data.type === 'admin_ok') {
                     isAdmin = true;
                     appendMessage(data.message, 'system-message');
@@ -581,7 +591,7 @@
             };
 
             socket.onclose = () => {
-                appendMessage('Disconnected from server. Reconnecting in 3s...', 'system-message');
+                setSingleStatus('Disconnected from server. Reconnecting in 3s...');
                 setTimeout(connectServer, 3000);
             };
         }
@@ -655,8 +665,7 @@
         function skipStranger() {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'skip' }));
-                chatBox.innerHTML = '';
-                appendMessage('Looking for a new stranger...', 'system-message');
+                setSingleStatus('Looking for a new stranger...');
             }
         }
 
