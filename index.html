@@ -43,7 +43,7 @@
         }
 
         header {
-            background: rgba(12, 12, 16, 0.9);
+            background: rgba(12, 12, 16, 0.95);
             padding: 10px 25px;
             display: flex;
             justify-content: space-between;
@@ -61,13 +61,29 @@
             text-shadow: 0 0 10px rgba(255, 0, 21, 0.8);
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 15px;
         }
 
+        /* ECHTES ÇUKUR SYMBOL (SVG) */
+        .cukur-svg-symbol {
+            width: 32px;
+            height: 48px;
+            filter: drop-shadow(0 0 8px #ff0015);
+            animation: pulseGlow 2.5s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            from { filter: drop-shadow(0 0 4px #ff0015); }
+            to { filter: drop-shadow(0 0 12px #ff0015); }
+        }
+
+        /* FIX FÜR BILDER: Zweites Bild komplett sichtbar machen */
         .header-deko-img {
             height: 65px;
-            width: 130px;
-            object-fit: cover;
+            width: auto;
+            max-width: 130px;
+            object-fit: contain; /* Kein Abschneiden mehr */
+            background: rgba(0, 0, 0, 0.5);
             border-radius: 8px;
             border: 2px solid #ff0015;
             box-shadow: 0 0 15px rgba(255, 0, 21, 0.8);
@@ -76,18 +92,6 @@
 
         .header-deko-img:hover {
             transform: scale(1.05);
-        }
-
-        .cukur-symbol {
-            color: #ff0015;
-            font-weight: bold;
-            letter-spacing: 4px;
-            animation: pulseGlow 2.5s infinite alternate;
-        }
-
-        @keyframes pulseGlow {
-            from { text-shadow: 0 0 5px #ff0015, 0 0 10px #ff0015; }
-            to { text-shadow: 0 0 15px #ff0015, 0 0 25px #ff0015; }
         }
 
         .nav-links {
@@ -133,7 +137,6 @@
             word-wrap: break-word;
         }
 
-        /* EIGENE NACHRICHTEN: Dunkler Hintergrund für perfekten Kontrast */
         .my-message {
             align-self: flex-end;
             background: rgba(15, 15, 20, 0.95);
@@ -142,7 +145,6 @@
             box-shadow: 0 0 12px rgba(255, 0, 21, 0.3);
         }
 
-        /* FREMDE NACHRICHTEN */
         .stranger-message {
             align-self: flex-start;
             background: rgba(20, 20, 28, 0.95);
@@ -161,7 +163,6 @@
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.2);
         }
 
-        /* PERFEKTE LESBARKEIT FÜR ALLE NAMEN */
         .nickname-tag {
             font-weight: 900;
             margin-right: 6px;
@@ -283,7 +284,14 @@
     <div class="app-container">
         <header>
             <div class="logo">
-                <span class="cukur-symbol">&lt;• • •&gt;</span> 
+                <!-- ECHTES EINGEBAUTES ÇUKUR-SYMBOL -->
+                <svg class="cukur-svg-symbol" viewBox="0 0 100 160" fill="#ff0015">
+                    <polygon points="50,10 10,40 25,40 50,22 75,40 90,40"/>
+                    <circle cx="50" cy="60" r="7"/>
+                    <circle cx="50" cy="85" r="7"/>
+                    <circle cx="50" cy="110" r="7"/>
+                    <polygon points="50,150 10,120 25,120 50,138 75,120 90,120"/>
+                </svg>
                 KDS CHAT
                 <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6098.png" class="header-deko-img" alt="Deko 1">
                 <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6093.jpg" class="header-deko-img" alt="Deko 2">
