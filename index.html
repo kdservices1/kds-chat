@@ -13,7 +13,6 @@
         }
 
         body {
-            /* Yamaç Çukur GIF als Hintergrund */
             background: url('https://media.giphy.com/media/ifLnmjGWXRZrFbgC3O/giphy.gif') no-repeat center center fixed;
             background-size: cover;
             color: #ffffff;
@@ -23,7 +22,6 @@
             overflow: hidden;
         }
 
-        /* Dunkler Overlay-Schleier */
         .bg-overlay {
             position: absolute;
             top: 0;
@@ -365,7 +363,12 @@
             socket = new WebSocket(SERVER_URL);
 
             socket.onopen = () => {
-                appendMessage('Connected. Looking for a stranger...', 'system-message');
+                // Sende Name und Farbe SOFORT nach Verbindung an den Server
+                socket.send(JSON.stringify({
+                    type: 'join',
+                    nick: myNickname,
+                    color: myColor
+                }));
             };
 
             socket.onmessage = (event) => {
@@ -399,9 +402,7 @@
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ 
                     type: 'message', 
-                    text: text,
-                    nick: myNickname,
-                    color: myColor
+                    text: text
                 }));
                 appendMessage(text, 'my-message', myNickname, myColor);
                 msgInput.value = '';
