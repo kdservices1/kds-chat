@@ -528,6 +528,8 @@
                     nick: myNickname,
                     color: myColor
                 }));
+                // Sobald die WebSocket-Verbindung steht:
+                appendMessage('Connected to stranger!', 'system-message');
             };
 
             socket.onmessage = async (event) => {
@@ -637,6 +639,9 @@
                 socket.send(JSON.stringify({ type: 'skip' }));
                 chatBox.innerHTML = '';
                 appendMessage('Connecting to a new stranger...', 'system-message');
+                setTimeout(() => {
+                    appendMessage('Connected to stranger!', 'system-message');
+                }, 1000);
             }
         }
 
