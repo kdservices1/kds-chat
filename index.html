@@ -133,17 +133,19 @@
             word-wrap: break-word;
         }
 
+        /* EIGENE NACHRICHTEN: Dunkler Hintergrund für perfekten Kontrast */
         .my-message {
             align-self: flex-end;
-            background: rgba(229, 9, 20, 0.85);
+            background: rgba(15, 15, 20, 0.95);
             color: #ffffff;
-            border-right: 3px solid #ffffff;
-            box-shadow: 0 0 12px rgba(255, 0, 21, 0.4);
+            border-right: 3px solid #ff0015;
+            box-shadow: 0 0 12px rgba(255, 0, 21, 0.3);
         }
 
+        /* FREMDE NACHRICHTEN */
         .stranger-message {
             align-self: flex-start;
-            background: rgba(20, 20, 28, 0.9);
+            background: rgba(20, 20, 28, 0.95);
             color: #eeeeee;
             border-left: 3px solid #ff0015;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
@@ -159,10 +161,11 @@
             box-shadow: 0 0 10px rgba(255, 0, 21, 0.2);
         }
 
+        /* PERFEKTE LESBARKEIT FÜR ALLE NAMEN */
         .nickname-tag {
-            font-weight: bold;
+            font-weight: 900;
             margin-right: 6px;
-            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+            text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000, 1px -1px 2px #000000, -1px 1px 2px #000000;
         }
 
         #input-container {
@@ -363,7 +366,6 @@
             socket = new WebSocket(SERVER_URL);
 
             socket.onopen = () => {
-                // Sende Name und Farbe SOFORT nach Verbindung an den Server
                 socket.send(JSON.stringify({
                     type: 'join',
                     nick: myNickname,
