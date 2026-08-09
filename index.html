@@ -143,11 +143,29 @@
             align-items: center;
             box-shadow: 0 4px 15px rgba(255, 0, 21, 0.3);
             font-size: 0.9rem;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .banner-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .banner-controls select {
+            background: #050508;
+            color: #ffffff;
+            border: 1px solid #ff0015;
+            padding: 6px 10px;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
         }
 
         .banner-buttons button {
             padding: 6px 14px;
-            margin-left: 8px;
+            margin-left: 5px;
             font-weight: bold;
             border: none;
             cursor: pointer;
@@ -393,10 +411,22 @@
         </header>
 
         <div id="translation-banner">
-            <span id="banner-text">We detected your language. Enable live translation?</span>
-            <div class="banner-buttons">
-                <button class="btn-yes" onclick="setTranslation(true)">Yes</button>
-                <button class="btn-no" onclick="setTranslation(false)">No (English)</button>
+            <span>Live Translation:</span>
+            <div class="banner-controls">
+                <select id="lang-select">
+                    <option value="de">German (Deutsch)</option>
+                    <option value="en">English</option>
+                    <option value="tr">Turkish (Türkçe)</option>
+                    <option value="es">Spanish (Español)</option>
+                    <option value="fr">French (Français)</option>
+                    <option value="ru">Russian (Русский)</option>
+                    <option value="ar">Arabic (العربية)</option>
+                    <option value="it">Italian (Italiano)</option>
+                </select>
+                <div class="banner-buttons">
+                    <button class="btn-yes" onclick="setTranslation(true)">Enable</button>
+                    <button class="btn-no" onclick="setTranslation(false)">Disable</button>
+                </div>
             </div>
         </div>
 
@@ -449,6 +479,7 @@
     <script>
         const chatBox = document.getElementById('chat-box');
         const msgInput = document.getElementById('msg-input');
+        const langSelect = document.getElementById('lang-select');
         
         const SERVER_URL = 'wss://kds-chat-server.onrender.com';
         let socket;
@@ -457,36 +488,34 @@
         let isAdmin = false;
 
         let autoTranslate = false;
-        let userLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
-
-        const prompts = {
-            tr: 'Türkçe tespit edildi. Sohbet mesajları Türkçeye çevrilsin mi?',
-            de: 'Deutsch erkannt. Sollen Nachrichten auf Deutsch übersetzt werden?',
-            es: 'Idioma detectado. ¿Quieres traducir los mensajes a Español?',
-            fr: 'Langue détectée. Voulez-vous traduire les messages en Français?',
-            en: 'Enable live auto-translation to your language?'
-        };
+        let targetLang = (navigator.language || navigator.userLanguage || 'de').substring(0, 2).toLowerCase();
 
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
 
         document.getElementById('color-input').value = getRandomColor();
 
         function initTranslationCheck() {
-            if (userLang !== 'en') {
-                const text = prompts[userLang] || `Detected your language (${userLang.toUpperCase()}). Enable live translation?`;
-                document.getElementById('banner-text').innerText = text;
-                document.getElementById('translation-banner').style.display = 'flex';
+            if (langSelect.querySelector(`option[value="${targetLang}"]`)) {
+                langSelect.value = targetLang;
+            } else {
+                langSelect.value = 'en';
             }
+            document.getElementById('translation-banner').style.display = 'flex';
         }
 
         function setTranslation(enable) {
             autoTranslate = enable;
-            document.getElementById('translation-banner').style.display = 'none';
+            targetLang = langSelect.value;
+            if (enable) {
+                appendMessage(`Live translation enabled to [${targetLang.toUpperCase()}].`, 'system-message');
+            } else {
+                appendMessage('Live translation disabled.', 'system-message');
+            }
         }
 
-        async function translateText(text, targetLang) {
+        async function translateText(text, target) {
             try {
-                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${targetLang}`);
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${target}`);
                 const data = await res.json();
                 if (data && data.responseData) {
                     return data.responseData.translatedText;
@@ -519,7 +548,8 @@
         }
 
         function connectServer() {
-            appendMessage('Connecting to a stranger...', 'system-message');
+            chatBox.innerHTML = '';
+            appendMessage('Connecting to server...', 'system-message');
             socket = new WebSocket(SERVER_URL);
 
             socket.onopen = () => {
@@ -528,14 +558,17 @@
                     nick: myNickname,
                     color: myColor
                 }));
-                // Sobald die WebSocket-Verbindung steht:
-                appendMessage('Connected to stranger!', 'system-message');
+                appendMessage('Looking for a stranger...', 'system-message');
             };
 
             socket.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
                 
-                if (data.type === 'system') {
+                if (data.type === 'matched') {
+                    // Neues Match bestätigt: Chatverlauf leeren
+                    chatBox.innerHTML = '';
+                    appendMessage('Connected to a stranger!', 'system-message');
+                } else if (data.type === 'system') {
                     appendMessage(data.message, 'system-message');
                 } else if (data.type === 'admin_ok') {
                     isAdmin = true;
@@ -557,18 +590,14 @@
             const text = msgInput.value.trim();
             if (!text) return;
 
-            // Admin command: /admin PASSWORD
+            // Admin commands
             if (text.startsWith('/admin ')) {
                 const pass = text.split(' ')[1];
-                socket.send(JSON.stringify({
-                    type: 'admin_auth',
-                    password: pass
-                }));
+                socket.send(JSON.stringify({ type: 'admin_auth', password: pass }));
                 msgInput.value = '';
                 return;
             }
 
-            // Ban command: /ban USERNAME
             if (text.startsWith('/ban ')) {
                 const targetNick = text.substring(5).trim();
                 if (!isAdmin) {
@@ -576,15 +605,11 @@
                     msgInput.value = '';
                     return;
                 }
-                socket.send(JSON.stringify({
-                    type: 'admin_ban',
-                    target: targetNick
-                }));
+                socket.send(JSON.stringify({ type: 'admin_ban', target: targetNick }));
                 msgInput.value = '';
                 return;
             }
 
-            // Unban command per Nickname: /unban USERNAME
             if (text.startsWith('/unban ')) {
                 const targetNick = text.substring(7).trim();
                 if (!isAdmin) {
@@ -592,15 +617,11 @@
                     msgInput.value = '';
                     return;
                 }
-                socket.send(JSON.stringify({
-                    type: 'admin_unban',
-                    target: targetNick
-                }));
+                socket.send(JSON.stringify({ type: 'admin_unban', target: targetNick }));
                 msgInput.value = '';
                 return;
             }
 
-            // Unban command per IP: /unbanip IP_ADDRESS
             if (text.startsWith('/unbanip ')) {
                 const targetIP = text.substring(9).trim();
                 if (!isAdmin) {
@@ -608,10 +629,7 @@
                     msgInput.value = '';
                     return;
                 }
-                socket.send(JSON.stringify({
-                    type: 'admin_unban_ip',
-                    ip: targetIP
-                }));
+                socket.send(JSON.stringify({ type: 'admin_unban_ip', ip: targetIP }));
                 msgInput.value = '';
                 return;
             }
@@ -638,10 +656,7 @@
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'skip' }));
                 chatBox.innerHTML = '';
-                appendMessage('Connecting to a new stranger...', 'system-message');
-                setTimeout(() => {
-                    appendMessage('Connected to stranger!', 'system-message');
-                }, 1000);
+                appendMessage('Looking for a new stranger...', 'system-message');
             }
         }
 
@@ -663,11 +678,11 @@
                 msgDiv.appendChild(textSpan);
 
                 if (autoTranslate && className === 'stranger-message') {
-                    const translated = await translateText(text, userLang);
+                    const translated = await translateText(text, targetLang);
                     if (translated && translated.toLowerCase() !== text.toLowerCase()) {
                         const transSpan = document.createElement('span');
                         transSpan.classList.add('translated-text');
-                        transSpan.innerText = `🌐 (${userLang.toUpperCase()}): ${translated}`;
+                        transSpan.innerText = `🌐 (${targetLang.toUpperCase()}): ${translated}`;
                         msgDiv.appendChild(transSpan);
                     }
                 }
