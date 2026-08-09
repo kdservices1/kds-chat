@@ -82,7 +82,6 @@
             to { filter: drop-shadow(0 0 16px #ff0015); }
         }
 
-        /* GROSSE HORIZONTALE BILDER IM HEADER */
         .header-images-wrapper {
             display: flex;
             flex-direction: row;
@@ -315,7 +314,6 @@
             text-shadow: 0 0 8px rgba(255, 0, 21, 0.6);
         }
 
-        /* FARBWÄHLER STYLING */
         .color-picker-container {
             margin-top: 15px;
             display: flex;
@@ -380,7 +378,6 @@
                     KDS CHAT
                 </div>
 
-                <!-- GROSSE HORIZONTALE DEKO-BILDER -->
                 <div class="header-images-wrapper">
                     <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6098.png" class="header-deko-img" alt="Deko 1">
                     <img src="https://raw.githubusercontent.com/kdservices1/kd-assets/main/IMG_6093.jpg" class="header-deko-img" alt="Deko 2">
@@ -412,7 +409,7 @@
         </div>
     </div>
 
-    <!-- Modal: Nickname & Farbwähler Setup -->
+    <!-- Modal: Nickname Setup -->
     <div id="nickname-modal" class="modal" style="display: flex;">
         <div class="modal-content">
             <h2>Enter Your Nickname</h2>
@@ -420,7 +417,6 @@
             
             <input type="text" id="nickname-input" placeholder="e.g. BOGA" maxlength="15" style="width: 100%;" onkeypress="handleNickKey(event)">
             
-            <!-- FARBWÄHLER EINGEBAUT -->
             <div class="color-picker-container">
                 <input type="color" id="color-input" value="#00bfff">
                 <label for="color-input" style="font-size: 0.9rem; color: #ffffff;">Choose Nickname Color</label>
@@ -458,6 +454,7 @@
         let socket;
         let myNickname = 'Anonymous';
         let myColor = '#00bfff';
+        let isAdmin = false;
 
         let autoTranslate = false;
         let userLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
@@ -472,7 +469,6 @@
 
         const forbiddenPattern = /\b(cp|pedof|pedoph|childporn|child\s*abuse|kidporn|kinderporno)\b/i;
 
-        // Setzt beim Start eine Zufallsfarbe als Standardwert im Picker
         document.getElementById('color-input').value = getRandomColor();
 
         function initTranslationCheck() {
@@ -510,12 +506,8 @@
             const nickVal = document.getElementById('nickname-input').value.trim();
             const colorVal = document.getElementById('color-input').value;
             
-            if (nickVal) {
-                myNickname = nickVal;
-            }
-            if (colorVal) {
-                myColor = colorVal;
-            }
+            if (nickVal) { myNickname = nickVal; }
+            if (colorVal) { myColor = colorVal; }
 
             closeModal('nickname-modal');
             initTranslationCheck();
@@ -539,7 +531,11 @@
 
             socket.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
+                
                 if (data.type === 'system') {
+                    appendMessage(data.message, 'system-message');
+                } else if (data.type === 'admin_ok') {
+                    isAdmin = true;
                     appendMessage(data.message, 'system-message');
                 } else if (data.type === 'message') {
                     const senderNick = data.nick || 'Stranger';
@@ -558,6 +554,34 @@
             const text = msgInput.value.trim();
             if (!text) return;
 
+            // Admin-Befehl: /admin PASSWORT
+            if (text.startsWith('/admin ')) {
+                const pass = text.split(' ')[1];
+                socket.send(JSON.stringify({
+                    type: 'admin_auth',
+                    password: pass
+                }));
+                msgInput.value = '';
+                return;
+            }
+
+            // Ban-Befehl: /ban USERNAME
+            if (text.startsWith('/ban ')) {
+                const targetNick = text.substring(5).trim();
+                if (!isAdmin) {
+                    appendMessage('❌ Fehler: Du besitzt keine Admin-Rechte!', 'system-message');
+                    msgInput.value = '';
+                    return;
+                }
+                socket.send(JSON.stringify({
+                    type: 'admin_ban',
+                    target: targetNick
+                }));
+                msgInput.value = '';
+                return;
+            }
+
+            // Chat-Moderation Filter
             if (forbiddenPattern.test(text)) {
                 alert('Violation detected. You have been disconnected.');
                 socket.close();
