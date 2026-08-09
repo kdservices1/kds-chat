@@ -1,4 +1,6 @@
 const WebSocket = require('ws');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 const server = new WebSocket.Server({ port: PORT });
@@ -6,10 +8,24 @@ const server = new WebSocket.Server({ port: PORT });
 // Admin Passwort
 const ADMIN_PASSWORD = 'Kaan';
 
-// In-Memory Speicher für Sperren & Whitelist
+// In-Memory Speicher für Sperren
 const bannedNicks = new Set();
 const bannedIPs = new Set();
-const ownerIPs = new Set(); // Speichert geschützte Owner-IPs
+
+// Datei zum permanenten Speichern der Owner-IP
+const OWNER_FILE = path.join(__dirname, 'owner.json');
+let permanentOwnerIP = null;
+
+// Beim Start versuchen, die gespeicherte Owner-IP zu laden
+if (fs.existsSync(OWNER_FILE)) {
+    try {
+        const data = JSON.parse(fs.readFileSync(OWNER_FILE, 'utf8'));
+        permanentOwnerIP = data.ip || null;
+        console.log(`🔒 Permanent Owner IP geladen: ${permanentOwnerIP}`);
+    } catch (e) {
+        console.error('Fehler beim Laden der Owner-Datei:', e);
+    }
+}
 
 let waitingUser = null;
 
@@ -49,14 +65,14 @@ server.on('connection', (socket, req) => {
     const clientIP = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.socket.remoteAddress;
     socket.ip = clientIP;
 
-    // IMMUNISIERUNG & UNBAN FÜR OWNER
-    if (ownerIPs.has(clientIP)) {
+    // PRÜFEN, OB ES DER PERMANENTE OWNER IST
+    if (permanentOwnerIP && clientIP === permanentOwnerIP) {
         socket.isAdmin = true;
-        bannedIPs.delete(clientIP);
+        bannedIPs.delete(clientIP); // Falls sie blockiert war
     }
 
-    // IP-Ban Prüfen (Owner wird automatisch übergangen)
-    if (bannedIPs.has(clientIP) && !ownerIPs.has(clientIP)) {
+    // IP-Ban Prüfen (Owner wird IMMER ignoriert)
+    if (bannedIPs.has(clientIP) && clientIP !== permanentOwnerIP) {
         socket.send(JSON.stringify({ type: 'system', message: '❌ You are permanently banned from this server.' }));
         socket.close();
         return;
@@ -74,7 +90,7 @@ server.on('connection', (socket, req) => {
             if (data.type === 'join') {
                 const requestedNick = data.nick ? data.nick.trim() : 'Stranger';
 
-                if (bannedNicks.has(requestedNick.toLowerCase()) && !ownerIPs.has(clientIP)) {
+                if (bannedNicks.has(requestedNick.toLowerCase()) && socket.ip !== permanentOwnerIP) {
                     socket.send(JSON.stringify({ type: 'system', message: '❌ Your nickname is banned.' }));
                     socket.close();
                     return;
@@ -111,13 +127,29 @@ server.on('connection', (socket, req) => {
             // 4. ADMIN AUTHENTIFIZIERUNG (/admin Kaan)
             else if (data.type === 'admin_auth') {
                 if (data.password === ADMIN_PASSWORD) {
-                    socket.isAdmin = true;
-                    ownerIPs.add(clientIP);
-                    bannedIPs.delete(clientIP);
+                    // Prüfen, ob schon ein anderer Owner existiert (Sicherheitsnetz)
+                    if (permanentOwnerIP && permanentOwnerIP !== socket.ip) {
+                        socket.send(JSON.stringify({ type: 'system', message: '❌ Ein Owner ist bereits registriert! Zugriff verweigert.' }));
+                        return;
+                    }
 
-                    socket.send(JSON.stringify({ type: 'admin_ok', message: '⚡ Admin rights granted. Your IP is now protected from bans!' }));
+                    // Erste Registrierung des Owners permanent speichern
+                    if (!permanentOwnerIP) {
+                        permanentOwnerIP = socket.ip;
+                        try {
+                            fs.writeFileSync(OWNER_FILE, JSON.stringify({ ip: permanentOwnerIP }), 'utf8');
+                            console.log(`👑 Neue permanente Owner-IP gespeichert: ${permanentOwnerIP}`);
+                        } catch (e) {
+                            console.error('Fehler beim Speichern der Owner-Datei:', e);
+                        }
+                    }
+
+                    socket.isAdmin = true;
+                    bannedIPs.delete(socket.ip);
+
+                    socket.send(JSON.stringify({ type: 'admin_ok', message: '⚡ Permanent Owner-Rechte aktiviert! Deine IP ist für immer geschützt.' }));
                 } else {
-                    socket.send(JSON.stringify({ type: 'system', message: '❌ Invalid admin password.' }));
+                    socket.send(JSON.stringify({ type: 'system', message: '❌ Falsches Admin-Passwort.' }));
                 }
             }
 
@@ -127,9 +159,9 @@ server.on('connection', (socket, req) => {
 
                 const targetNick = data.target.toLowerCase();
 
-                // Schutz: Eigenen Partner schützen, falls dieser ein Owner ist
-                if (socket.partner && ownerIPs.has(socket.partner.ip)) {
-                    socket.send(JSON.stringify({ type: 'system', message: '🛡️ Action blocked: Target IP is protected by Owner Immunity.' }));
+                // Schutz: Verhindert, dass der Owner gebannt wird
+                if (socket.partner && socket.partner.ip === permanentOwnerIP) {
+                    socket.send(JSON.stringify({ type: 'system', message: '🛡️ Aktion abgebrochen: Ziel ist der geschützte Server-Owner!' }));
                     return;
                 }
 
@@ -139,7 +171,7 @@ server.on('connection', (socket, req) => {
                     const targetSocket = socket.partner;
                     const targetIP = targetSocket.ip;
 
-                    if (targetIP && !ownerIPs.has(targetIP)) {
+                    if (targetIP && targetIP !== permanentOwnerIP) {
                         bannedIPs.add(targetIP);
                     }
 
@@ -147,7 +179,7 @@ server.on('connection', (socket, req) => {
                     targetSocket.close();
                     socket.send(JSON.stringify({ type: 'system', message: `✅ Banned ${data.target} | IP: ${targetIP}` }));
                 } else {
-                    socket.send(JSON.stringify({ type: 'system', message: `✅ Nickname '${data.target}' added to ban list.` }));
+                    socket.send(JSON.stringify({ type: 'system', message: `✅ Nickname '${data.target}' zur Ban-Liste hinzugefügt.` }));
                 }
             }
 
@@ -180,4 +212,4 @@ server.on('connection', (socket, req) => {
     });
 });
 
-console.log(`KDS Chat Server running on port ${PORT}`);
+console.log(`KDS Chat Server läuft auf Port ${PORT}`);
