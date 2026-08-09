@@ -39,7 +39,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(4, 4, 6, 0.5); /* Leichtes Abdunkeln für perfekte Lesbarkeit des Chats */
+            background: rgba(4, 4, 6, 0.5);
             backdrop-filter: blur(3px);
             z-index: 2;
             pointer-events: none;
@@ -125,6 +125,30 @@
             align-items: center;
             gap: 6px;
             flex-wrap: wrap;
+        }
+
+        /* Live Online Counter Design */
+        #online-counter {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #ff0015;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            box-shadow: 0 0 8px rgba(255, 0, 21, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff0015;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff0015;
+            animation: pulseGlow 1.5s infinite alternate;
         }
 
         .nav-links a, .nav-links button {
@@ -415,6 +439,7 @@
             </div>
 
             <div class="nav-links">
+                <div id="online-counter"><span class="online-dot"></span> <span id="online-count">--</span> Online</div>
                 <a href="https://kdservices1.github.io/CUKUR-KD/" target="_blank">Website</a>
                 <a href="https://discord.gg/zrMp8zwhCW" target="_blank">Discord</a>
                 <button onclick="openModal('rules-modal')">Rules</button>
@@ -508,7 +533,6 @@
             for (let i = 0; i < stars.length; i++) {
                 let star = stars[i];
 
-                // Farbverlauf für jede Linie von transparentem Dunkelrot zu hellem Rot/Weiß
                 let grad = ctx.createLinearGradient(star.x, star.y, star.x - star.length, star.y - star.length);
                 grad.addColorStop(0, `rgba(255, 0, 21, ${star.opacity})`);
                 grad.addColorStop(1, 'rgba(255, 100, 100, 0)');
@@ -519,11 +543,9 @@
                 ctx.lineTo(star.x - star.length, star.y - star.length);
                 ctx.stroke();
 
-                // Bewegung diagonal nach unten rechts (wie im Bild)
                 star.x += star.speed;
                 star.y += star.speed;
 
-                // Wenn der Stern aus dem Bild läuft, oben links neu starten
                 if (star.x > canvas.width + 50 || star.y > canvas.height + 50) {
                     star.x = Math.random() * canvas.width - 50;
                     star.y = -50;
@@ -629,6 +651,11 @@
 
             socket.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
+
+                // Online Counter direkt abfangen falls vom Server gesendet
+                if (data.onlineCount !== undefined) {
+                    document.getElementById('online-count').innerText = data.onlineCount;
+                }
                 
                 if (data.type === 'matched') {
                     chatBox.innerHTML = '';
@@ -649,6 +676,7 @@
             };
 
             socket.onclose = () => {
+                document.getElementById('online-count').innerText = '--';
                 appendMessage('Disconnected from server. Reconnecting in 3s...', 'system-message');
                 setTimeout(connectServer, 3000);
             };
