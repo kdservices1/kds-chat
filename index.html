@@ -79,7 +79,7 @@
 
         @keyframes pulseGlow {
             from { filter: drop-shadow(0 0 4px #ff0015); }
-            to { filter: drop-shadow(0 0 16px #ff0015); }
+            to { filter: shadow(0 0 16px #ff0015); }
         }
 
         .header-images-wrapper {
@@ -519,6 +519,7 @@
         }
 
         function connectServer() {
+            appendMessage('Connecting to a stranger...', 'system-message');
             socket = new WebSocket(SERVER_URL);
 
             socket.onopen = () => {
@@ -554,7 +555,7 @@
             const text = msgInput.value.trim();
             if (!text) return;
 
-            // Admin-Befehl: /admin PASSWORT
+            // Admin command: /admin PASSWORD
             if (text.startsWith('/admin ')) {
                 const pass = text.split(' ')[1];
                 socket.send(JSON.stringify({
@@ -565,11 +566,11 @@
                 return;
             }
 
-            // Ban-Befehl: /ban USERNAME
+            // Ban command: /ban USERNAME
             if (text.startsWith('/ban ')) {
                 const targetNick = text.substring(5).trim();
                 if (!isAdmin) {
-                    appendMessage('❌ Fehler: Du besitzt keine Admin-Rechte!', 'system-message');
+                    appendMessage('❌ Error: You do not have admin permissions!', 'system-message');
                     msgInput.value = '';
                     return;
                 }
@@ -581,7 +582,7 @@
                 return;
             }
 
-            // Chat-Moderation Filter
+            // Chat Moderation Filter
             if (forbiddenPattern.test(text)) {
                 alert('Violation detected. You have been disconnected.');
                 socket.close();
@@ -603,6 +604,7 @@
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'skip' }));
                 chatBox.innerHTML = '';
+                appendMessage('Connecting to a new stranger...', 'system-message');
             }
         }
 
@@ -623,6 +625,7 @@
                 textSpan.innerText = text;
                 msgDiv.appendChild(textSpan);
 
+                // Live-Übersetzung wird NUR ausgeführt, wenn der Nutzer auf "Yes" geklickt hat (autoTranslate == true)
                 if (autoTranslate && className === 'stranger-message') {
                     const translated = await translateText(text, userLang);
                     if (translated && translated.toLowerCase() !== text.toLowerCase()) {
