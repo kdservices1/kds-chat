@@ -5,14 +5,15 @@ const PORT = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ port: PORT });
 
 // PASSWORT HIER ÄNDERN!
-const ADMIN_PASSWORD = "Kaanbesiktas1904";
+const ADMIN_PASSWORD = "Kaan";
 
-// Pfade zum Speichern von Admin-IP und Ban-Liste
 const ADMIN_FILE = './admin_ip.json';
 const BANNED_FILE = './banned_ips.json';
+const NICK_IP_FILE = './nick_ip_map.json'; // Speichert Nickname -> IP Zuordnung für Unbans
 
 let adminIP = fs.existsSync(ADMIN_FILE) ? JSON.parse(fs.readFileSync(ADMIN_FILE)) : null;
 let bannedIPs = fs.existsSync(BANNED_FILE) ? new Set(JSON.parse(fs.readFileSync(BANNED_FILE))) : new Set();
+let nickIpMap = fs.existsSync(NICK_IP_FILE) ? JSON.parse(fs.readFileSync(NICK_IP_FILE)) : {};
 
 function saveBannedIPs() {
     fs.writeFileSync(BANNED_FILE, JSON.stringify(Array.from(bannedIPs)));
@@ -23,27 +24,28 @@ function saveAdminIP(ip) {
     fs.writeFileSync(ADMIN_FILE, JSON.stringify(adminIP));
 }
 
-const clients = new Map(); // Speichert ws -> { nick, color, ip, isAdmin }
+function saveNickIpMap() {
+    fs.writeFileSync(NICK_IP_FILE, JSON.stringify(nickIpMap));
+}
 
-console.log(`Server gestartet auf Port ${PORT}`);
+const clients = new Map();
+
+console.log(`Server running on port ${PORT}`);
 
 wss.on('connection', (ws, req) => {
-    // Liest die echte IP des Nutzers aus (auch hinter Render-Proxy)
     const clientIP = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
 
-    // 1. IP-Ban Prüfung
     if (bannedIPs.has(clientIP)) {
-        ws.send(JSON.stringify({ type: 'system', message: '❌ Du bist dauerhaft von diesem Server gebannt!' }));
+        ws.send(JSON.stringify({ type: 'system', message: '❌ You are permanently banned from this server!' }));
         ws.close();
         return;
     }
 
-    // 2. Automatischer Admin-Check über die abgespeicherte IP
     const isAutoAdmin = (adminIP !== null && adminIP === clientIP);
     clients.set(ws, { nick: 'Anonymous', color: '#00bfff', ip: clientIP, isAdmin: isAutoAdmin });
 
     if (isAutoAdmin) {
-        ws.send(JSON.stringify({ type: 'admin_ok', message: '👑 Willkommen zurück, Owner! Du wurdest automatisch als Admin erkannt.' }));
+        ws.send(JSON.stringify({ type: 'admin_ok', message: '👑 Welcome back, Owner! You have been automatically recognized as Admin.' }));
     }
 
     ws.on('message', (message) => {
@@ -51,34 +53,36 @@ wss.on('connection', (ws, req) => {
             const data = JSON.parse(message);
             const client = clients.get(ws);
 
-            // NICKNAME SETZEN
             if (data.type === 'join') {
                 client.nick = data.nick || 'Anonymous';
                 client.color = data.color || '#00bfff';
+                // Merke die IP zum Nickname für spätere Unbans
+                nickIpMap[client.nick.toLowerCase()] = clientIP;
+                saveNickIpMap();
                 return;
             }
 
-            // ADMIN ERSTANMELDUNG (/admin PASSWORT)
+            // ADMIN ERSTANMELDUNG
             if (data.type === 'admin_auth') {
                 if (adminIP !== null && adminIP !== clientIP) {
-                    ws.send(JSON.stringify({ type: 'system', message: '⛔ Es existiert bereits ein registrierter Admin! Zugriff verweigert.' }));
+                    ws.send(JSON.stringify({ type: 'system', message: '⛔ An admin is already registered! Access denied.' }));
                     return;
                 }
 
                 if (data.password === ADMIN_PASSWORD) {
                     saveAdminIP(clientIP);
                     client.isAdmin = true;
-                    ws.send(JSON.stringify({ type: 'admin_ok', message: '👑 Erfolgreich! Deine IP wurde dauerhaft als einziger Admin gespeichert.' }));
+                    ws.send(JSON.stringify({ type: 'admin_ok', message: '👑 Success! Your IP has been permanently registered as the sole Admin.' }));
                 } else {
-                    ws.send(JSON.stringify({ type: 'system', message: '❌ Falsches Admin-Passwort!' }));
+                    ws.send(JSON.stringify({ type: 'system', message: '❌ Incorrect admin password!' }));
                 }
                 return;
             }
 
-            // BAN-BEFEHL PER NICKNAME (/ban NICKNAME)
+            // BAN PER NICKNAME
             if (data.type === 'admin_ban') {
                 if (!client.isAdmin) {
-                    ws.send(JSON.stringify({ type: 'system', message: '❌ Fehler: Keine Admin-Rechte!' }));
+                    ws.send(JSON.stringify({ type: 'system', message: '❌ Error: You do not have admin permissions!' }));
                     return;
                 }
 
@@ -88,7 +92,7 @@ wss.on('connection', (ws, req) => {
                         bannedIPs.add(targetClient.ip);
                         saveBannedIPs();
                         
-                        targetWs.send(JSON.stringify({ type: 'system', message: '🔨 Du wurdest vom Admin gebannt.' }));
+                        targetWs.send(JSON.stringify({ type: 'system', message: '🔨 You have been banned by the Admin.' }));
                         targetWs.close();
                         targetFound = true;
                         break;
@@ -96,16 +100,52 @@ wss.on('connection', (ws, req) => {
                 }
 
                 if (targetFound) {
-                    ws.send(JSON.stringify({ type: 'system', message: `✅ User "${data.target}" wurde erfolgreich gebannt!` }));
+                    ws.send(JSON.stringify({ type: 'system', message: `✅ User "${data.target}" has been successfully banned!` }));
                 } else {
-                    ws.send(JSON.stringify({ type: 'system', message: `⚠️ User "${data.target}" ist aktuell nicht online.` }));
+                    ws.send(JSON.stringify({ type: 'system', message: `⚠️ User "${data.target}" was not found online.` }));
                 }
                 return;
             }
 
-            // NACHRICHTEN VERARBEITEN & SPIONAGE-FUNKTION
+            // UNBAN PER NICKNAME
+            if (data.type === 'admin_unban') {
+                if (!client.isAdmin) {
+                    ws.send(JSON.stringify({ type: 'system', message: '❌ Error: You do not have admin permissions!' }));
+                    return;
+                }
+
+                const targetLower = data.target.toLowerCase();
+                const targetIP = nickIpMap[targetLower];
+
+                if (targetIP && bannedIPs.has(targetIP)) {
+                    bannedIPs.delete(targetIP);
+                    saveBannedIPs();
+                    ws.send(JSON.stringify({ type: 'system', message: `✅ User "${data.target}" (IP: ${targetIP}) has been unbanned!` }));
+                } else {
+                    ws.send(JSON.stringify({ type: 'system', message: `⚠️ Could not find a banned user with nickname "${data.target}". Try /unbanip <IP>` }));
+                }
+                return;
+            }
+
+            // UNBAN DIRECTLY PER IP
+            if (data.type === 'admin_unban_ip') {
+                if (!client.isAdmin) {
+                    ws.send(JSON.stringify({ type: 'system', message: '❌ Error: You do not have admin permissions!' }));
+                    return;
+                }
+
+                if (bannedIPs.has(data.ip)) {
+                    bannedIPs.delete(data.ip);
+                    saveBannedIPs();
+                    ws.send(JSON.stringify({ type: 'system', message: `✅ IP "${data.ip}" has been unbanned!` }));
+                } else {
+                    ws.send(JSON.stringify({ type: 'system', message: `⚠️ IP "${data.ip}" is not in the ban list.` }));
+                }
+                return;
+            }
+
+            // CHAT MESSAGES & LIVE SPYING FOR ADMIN
             if (data.type === 'message') {
-                // Broadcast an alle Chat-Partner
                 for (let [otherWs, otherClient] of clients.entries()) {
                     if (otherWs !== ws && !otherClient.isAdmin) {
                         otherWs.send(JSON.stringify({
@@ -115,7 +155,6 @@ wss.on('connection', (ws, req) => {
                             text: data.text
                         }));
                     }
-                    // Admin bekommt ALLE Nachrichten als Spionage-Protokoll [SPY]
                     else if (otherClient.isAdmin && otherWs !== ws) {
                         otherWs.send(JSON.stringify({
                             type: 'message',
@@ -127,13 +166,12 @@ wss.on('connection', (ws, req) => {
                 }
             }
 
-            // SKIP BEFEHL
             if (data.type === 'skip') {
-                ws.send(JSON.stringify({ type: 'system', message: 'Suche nach neuem Chat-Partner...' }));
+                ws.send(JSON.stringify({ type: 'system', message: 'Searching for a new chat partner...' }));
             }
 
         } catch (e) {
-            console.error("Fehler bei Verarbeitung:", e);
+            console.error("Processing error:", e);
         }
     });
 
